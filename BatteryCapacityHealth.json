@@ -1,0 +1,1880 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "EcosDashboards"
+      ],
+      "targetBlank": false,
+      "title": "Ecos Dashboards",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+  "panels": [
+    {
+      "id": 600,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "type": "row",
+      "title": "Battery Health",
+      "collapsed": false,
+      "description": "Current estimated battery health as a percentage of the reference capacity. Reference is the maximum capacity ever estimated from all historical charge sessions, unless overridden by the Nominal Capacity variable.",
+      "links": [
+        {
+          "title": "Charging Efficiency & Details",
+          "type": "link",
+          "url": "/d/ecos-ced-01/charging-efficiency-and-details",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Current estimated capacity as a percentage of the reference capacity (average of the earliest 10 deep charge sessions in the selected period).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "yellow",
+                "value": 85
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent",
+          "custom": {},
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 9,
+        "h": 8
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n    ORDER BY cp.end_date DESC, c.date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT\n  cp.end_date AS time,\n  ROUND(((c.rated_battery_range_km * re.efficiency / c.usable_battery_level) * 100.0 / COALESCE(NULLIF($nominal_capacity, 0), max_capacity.cap))::numeric, 2) AS \"Health %\"\nFROM charging_processes cp\nINNER JOIN charges c ON c.charging_process_id = cp.id\nCROSS JOIN max_capacity\nCROSS JOIN rated_efficiency re\nWHERE cp.car_id = $car_id\n  AND cp.end_date IS NOT NULL\n  AND cp.charge_energy_added >= re.efficiency\n  AND c.usable_battery_level > 0\nORDER BY cp.end_date",
+          "refId": "A"
+        }
+      ],
+      "title": "Battery Health",
+      "type": "stat",
+      "id": 700,
+      "links": [
+        {
+          "title": "Charging Efficiency & Details",
+          "type": "link",
+          "url": "/d/ecos-ced-01/charging-efficiency-and-details",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 6,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "30-Day Average [kWh]"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Nominal [kWh]"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    5,
+                    5
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Upper Bound"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 13
+              },
+              {
+                "id": "custom.fillBelowTo",
+                "value": "Lower Bound"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1f78b4",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lower Bound"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1f78b4",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT\n  start_date AS time,\n  ROUND((charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))::numeric, 1) AS \"Capacity [kWh]\",\n  CASE\n    WHEN EXTRACT(MONTH FROM start_date) IN (12,1,2) THEN 'Winter'\n    WHEN EXTRACT(MONTH FROM start_date) IN (3,4,5) THEN 'Spring'\n    WHEN EXTRACT(MONTH FROM start_date) IN (6,7,8) THEN 'Summer'\n    ELSE 'Fall'\n  END AS season\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 10\n  AND duration_min > 10\n  AND $__timeFilter(start_date)\nORDER BY start_date",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH monthly AS (\n  SELECT\n    DATE_TRUNC('month', start_date) AS month,\n    AVG((charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))) AS avg_cap\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 10\n    AND duration_min > 10\n    AND $__timeFilter(start_date)\n  GROUP BY 1\n  HAVING COUNT(*) >= 2\n),\nregression AS (\n  SELECT\n    regr_slope(avg_cap, EXTRACT(EPOCH FROM month) / 86400.0) AS slope,\n    regr_intercept(avg_cap, EXTRACT(EPOCH FROM month) / 86400.0) AS intercept\n  FROM monthly\n)\nSELECT\n  month AS time,\n  ROUND((regression.slope * (EXTRACT(EPOCH FROM month) / 86400.0) + regression.intercept)::numeric, 2) AS \"Trend [kWh]\"\nFROM monthly, regression\nORDER BY month",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH daily AS (SELECT date_trunc('day', cp.end_date) AS day, AVG(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS avg_cap, STDDEV(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS std_cap FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id, LATERAL (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS Efficiency) re WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 GROUP BY 1) SELECT day AS time, avg_cap + std_cap AS \"Upper Bound\", avg_cap - std_cap AS \"Lower Bound\" FROM daily ORDER BY day",
+          "refId": "C"
+        }
+      ],
+      "title": "Capacity Over Time",
+      "type": "timeseries",
+      "description": "Per-session estimated capacity colored by season, with a linear regression trend line showing the degradation slope.",
+      "links": [
+        {
+          "title": "Charging Habits",
+          "type": "link",
+          "url": "/d/ecos-ch-01/charging-habits",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "id": 601,
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 1
+      },
+      "type": "row",
+      "title": "Capacity Metrics",
+      "collapsed": false
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Reference capacity used for health and loss calculations. Defaults to the maximum capacity ever estimated from all historical charge sessions. Override with the Nominal Capacity variable.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 9,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n    ORDER BY cp.end_date DESC, c.date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT ROUND(COALESCE(NULLIF($nominal_capacity, 0), max_capacity.cap)::numeric, 2) AS \"Reference [kWh]\"\nFROM max_capacity, current_capacity",
+          "refId": "A"
+        }
+      ],
+      "title": "Reference Capacity",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average estimated capacity from the 50 most recent qualifying charge sessions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 9,
+        "y": 4,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n    ORDER BY cp.end_date DESC, c.date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT ROUND(current_capacity.cap::numeric, 2) AS \"Current [kWh]\"\nFROM max_capacity, current_capacity",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Capacity",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Difference between reference capacity and current capacity.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 9,
+        "y": 7,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n    ORDER BY cp.end_date DESC, c.date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT ROUND((COALESCE(NULLIF($nominal_capacity, 0), max_capacity.cap) - current_capacity.cap)::numeric, 2) AS \"Lost [kWh]\"\nFROM max_capacity, current_capacity",
+          "refId": "A"
+        }
+      ],
+      "title": "Capacity Lost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Estimated capacity loss per year based on linear regression of all qualifying sessions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": -999
+              },
+              {
+                "color": "yellow",
+                "value": -1
+              },
+              {
+                "color": "red",
+                "value": -3
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH sessions AS (\n  SELECT\n    EXTRACT(EPOCH FROM start_date) / 86400.0 AS day_num,\n    (charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS est_cap\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 10\n    AND duration_min > 10\n    AND $__timeFilter(start_date)\n)\nSELECT\n  ROUND((regr_slope(est_cap, day_num) * 365.0)::numeric, 2) AS \"Degradation [kWh/yr]\"\nFROM sessions\nHAVING COUNT(*) >= 5",
+          "refId": "A"
+        }
+      ],
+      "title": "Degradation Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Estimated capacity after one year at the current degradation rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 4,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n    ORDER BY cp.end_date DESC, c.date DESC\n    LIMIT 50\n  ) AS recent\n),\nregression AS (\n  SELECT regr_slope(capacity, day_num) * 365.0 AS slope\n  FROM (\n    SELECT\n      EXTRACT(EPOCH FROM cp.end_date) / 86400.0 AS day_num,\n      c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN charges c ON c.charging_process_id = cp.id\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n      AND c.usable_battery_level > 0\n  ) s\n  HAVING COUNT(*) >= 5\n)\nSELECT ROUND((current_capacity.cap + COALESCE(regression.slope, 0))::numeric, 2) AS \"Projected [kWh]\"\nFROM max_capacity, current_capacity, regression",
+          "refId": "A"
+        }
+      ],
+      "title": "Projected (1 Year)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Number of charge sessions that meet the minimum criteria for capacity estimation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 7,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS \"Sessions Analyzed\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 10\n  AND duration_min > 10\n  AND $__timeFilter(start_date)",
+          "refId": "A"
+        }
+      ],
+      "title": "Sessions Analyzed",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Difference between the highest and lowest seasonal average capacity estimates.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 1,
+        "w": 5,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH seasonal AS (\n  SELECT\n    CASE\n      WHEN EXTRACT(MONTH FROM start_date) IN (12,1,2) THEN 'Winter'\n      WHEN EXTRACT(MONTH FROM start_date) IN (3,4,5) THEN 'Spring'\n      WHEN EXTRACT(MONTH FROM start_date) IN (6,7,8) THEN 'Summer'\n      ELSE 'Fall'\n    END AS season,\n    ROUND(AVG((charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)))::numeric, 1) AS avg_cap\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 10\n    AND duration_min > 10\n    AND $__timeFilter(start_date)\n  GROUP BY 1\n  HAVING COUNT(*) >= 2\n)\nSELECT ROUND((MAX(avg_cap) - MIN(avg_cap))::numeric, 2) AS \"Seasonal Range [kWh]\"\nFROM seasonal",
+          "refId": "A"
+        }
+      ],
+      "title": "Seasonal Range",
+      "type": "stat"
+    },
+    {
+      "id": 602,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "type": "row",
+      "title": "Advanced Insights",
+      "collapsed": false
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Estimated full range at 100% SOC based on current capacity and the cars efficiency factor.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "lengthkm",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH deep_sessions AS (\n  SELECT\n    start_date,\n    charge_energy_added,\n    end_battery_level,\n    start_battery_level,\n    ROW_NUMBER() OVER (ORDER BY start_date ASC) AS rn_asc,\n    ROW_NUMBER() OVER (ORDER BY start_date DESC) AS rn_desc\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 30\n    AND duration_min > 30\n    AND $__timeFilter(start_date)\n),\nreference AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_asc <= 10\n),\ncurrent AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_desc <= 10\n)\nSELECT ROUND((current.cap / NULLIF(cars.efficiency, 0))::numeric, 1) AS \"Range @100% [km]\"\nFROM current, cars\nWHERE cars.id = $car_id",
+          "refId": "A"
+        }
+      ],
+      "title": "Est. Full Range @100%",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Total energy charged divided by current estimated capacity. One cycle equals one full charge equivalent.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 18,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH current AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 30\n    AND duration_min > 30\n    AND $__timeFilter(start_date)\n)\nSELECT ROUND((SUM(cp.charge_energy_added) / NULLIF(MAX(current.cap), 0))::numeric, 1) AS \"Charge Cycles\"\nFROM charging_processes cp, current\nWHERE cp.car_id = $car_id\n  AND cp.charge_energy_added > 0\n  AND $__timeFilter(cp.start_date)",
+          "refId": "A"
+        }
+      ],
+      "title": "Est. Charge Cycles",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Capacity loss per 10,000 km driven during the selected period.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH deep_sessions AS (\n  SELECT\n    start_date,\n    charge_energy_added,\n    end_battery_level,\n    start_battery_level,\n    ROW_NUMBER() OVER (ORDER BY start_date ASC) AS rn_asc,\n    ROW_NUMBER() OVER (ORDER BY start_date DESC) AS rn_desc\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 30\n    AND duration_min > 30\n    AND $__timeFilter(start_date)\n),\nreference AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_asc <= 10\n),\ncurrent AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_desc <= 10\n),\ntotals AS (\n  SELECT MAX(end_km) - MIN(start_km) AS total_km\n  FROM drives\n  WHERE car_id = $car_id AND $__timeFilter(start_date)\n)\nSELECT ROUND(((reference.cap - current.cap) / NULLIF(totals.total_km, 0) * 10000.0)::numeric, 3) AS \"Loss / 10k km [kWh]\"\nFROM reference, current, totals",
+          "refId": "A"
+        }
+      ],
+      "title": "Degradation / 10,000 km",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Days since the last deep charge session used for capacity estimation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "d",
+          "custom": {},
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 18,
+        "w": 6,
+        "h": 3
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND((EXTRACT(EPOCH FROM (NOW() - MAX(start_date))) / 86400.0)::numeric, 1) AS \"Days Since Deep\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 30\n  AND duration_min > 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Days Since Deep Session",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average battery capacity per calendar month with number of sessions. Blue bars = avg capacity, green line = session count.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.65,
+            "drawStyle": "bars",
+            "fillOpacity": 90,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Monthly [kWh]"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1f78b4",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sessions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#33a02c",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 6
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "auto"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 15
+              },
+              {
+                "id": "axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 50,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT date_trunc('month', cp.end_date) AS time, ROUND(AVG(c.rated_battery_range_km * re.efficiency / c.usable_battery_level)::numeric, 1) AS \"Avg Monthly [kWh]\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id, LATERAL (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS Efficiency) re WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 GROUP BY 1 ORDER BY 1",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT date_trunc('month', cp.end_date) AS time, COUNT(*)::int AS \"Sessions\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 GROUP BY 1 ORDER BY 1",
+          "refId": "B"
+        }
+      ],
+      "title": "Monthly Capacity Overview",
+      "type": "timeseries"
+    },
+    {
+      "id": 603,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "type": "row",
+      "title": "Temperature & Charger Type Analysis",
+      "collapsed": false
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Capacity estimates (dots) with outside temperature (line, right axis). Helps visualize how temperature affects battery capacity \u2014 heat-related degradation or cold-related reduction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 0,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Capacity [kWh]"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#1f78b4",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 4
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "always"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "30-Day Avg [kWh]"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2.5
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Outside Temp [\u00b0C]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 15
+              },
+              {
+                "id": "custom.gradientMode",
+                "value": "scheme"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-GrYlRd"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "id": null,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT cp.start_date AS time, ROUND((c.rated_battery_range_km * re.efficiency / c.usable_battery_level)::numeric, 1) AS \"Capacity [kWh]\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id, LATERAL (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS Efficiency) re WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND cp.outside_temp_avg IS NOT NULL AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT cp.start_date AS time, ROUND(AVG(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) OVER (ORDER BY cp.start_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"30-Day Avg [kWh]\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id, LATERAL (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS Efficiency) re WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND cp.outside_temp_avg IS NOT NULL AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT start_date AS time, outside_temp_avg AS \"Outside Temp [\u00b0C]\" FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND end_battery_level > start_battery_level AND outside_temp_avg IS NOT NULL AND $__timeFilter(start_date) ORDER BY start_date",
+          "refId": "C"
+        }
+      ],
+      "title": "Capacity vs Outside Temperature",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Capacity estimates color-coded by charger type: AC (green, home/Level 2) vs DC Fast (orange, Supercharger). Dashed lines show 30-day rolling averages.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 0,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DC Fast"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F79520",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AC Avg (30d)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    8,
+                    8
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DC Avg (30d)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F79520",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    8,
+                    8
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "id": null,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH efficiency AS (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS sub) SELECT cp.start_date AS time, ROUND((c.rated_battery_range_km * (SELECT efficiency FROM efficiency) / c.usable_battery_level)::numeric, 1) AS \"AC\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND NOT EXISTS (SELECT 1 FROM charges c2 WHERE c2.charging_process_id = cp.id AND c2.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH efficiency AS (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS sub) SELECT cp.start_date AS time, ROUND((c.rated_battery_range_km * (SELECT efficiency FROM efficiency) / c.usable_battery_level)::numeric, 1) AS \"DC Fast\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND EXISTS (SELECT 1 FROM charges c2 WHERE c2.charging_process_id = cp.id AND c2.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH efficiency AS (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS sub) SELECT cp.start_date AS time, ROUND(AVG(c.rated_battery_range_km * (SELECT efficiency FROM efficiency) / c.usable_battery_level) OVER (ORDER BY cp.start_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"AC Avg (30d)\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND NOT EXISTS (SELECT 1 FROM charges c2 WHERE c2.charging_process_id = cp.id AND c2.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH efficiency AS (SELECT COALESCE(derived_efficiency, car_efficiency) AS efficiency FROM (SELECT ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency, COUNT(*) AS count, cars.id AS car_id, cars.efficiency * 100 AS car_efficiency FROM cars LEFT JOIN charging_processes ON cars.id = charging_processes.car_id AND duration_min > 10 AND end_battery_level <= 95 AND start_rated_range_km IS NOT NULL AND end_rated_range_km IS NOT NULL AND charge_energy_added > 0 WHERE cars.id = $car_id GROUP BY 1, 3, 4 ORDER BY 2 DESC LIMIT 1) AS sub) SELECT cp.start_date AS time, ROUND(AVG(c.rated_battery_range_km * (SELECT efficiency FROM efficiency) / c.usable_battery_level) OVER (ORDER BY cp.start_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"DC Avg (30d)\" FROM charging_processes cp INNER JOIN charges c ON c.charging_process_id = cp.id WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND c.usable_battery_level > 0 AND EXISTS (SELECT 1 FROM charges c2 WHERE c2.charging_process_id = cp.id AND c2.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY time",
+          "refId": "D"
+        }
+      ],
+      "title": "Capacity: DC Fast vs AC",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 40,
+  "tags": [
+    "EcosDashboards"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC",
+        "includeAll": false,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "hide": 0,
+        "label": "Nominal Capacity (kWh)",
+        "name": "nominal_capacity",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT unit_of_length FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "length_unit",
+        "options": [],
+        "query": "SELECT unit_of_length FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "temp_unit",
+        "options": [],
+        "query": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT preferred_range FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "preferred_range",
+        "options": [],
+        "query": "SELECT preferred_range FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT base_url FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "SELECT base_url FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT efficiency FROM cars WHERE id = $car_id",
+        "hide": 2,
+        "includeAll": false,
+        "name": "efficiency",
+        "options": [],
+        "query": "SELECT efficiency FROM cars WHERE id = $car_id",
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6M",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Battery Capacity & Degradation",
+  "uid": "ecos-bch-01",
+  "version": 2,
+  "weekStart": "monday",
+  "description": "TeslaMate battery capacity estimation, degradation tracking, and capacity breakdowns. Part of Teslamate Ecos custom dashboards \u2014 built on a Tesla named Ecos."
+}

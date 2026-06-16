@@ -1,0 +1,1052 @@
+{
+  "uid": "ecos-pd-01",
+  "title": "Phantom Drain",
+  "tags": [
+    "EcosDashboards"
+  ],
+  "timezone": "browser",
+  "weekStart": "monday",
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 40,
+  "time": {
+    "from": "now-6M",
+    "to": "now"
+  },
+  "timepicker": {},
+  "refresh": "",
+  "preload": false,
+  "fiscalYearStartMonth": 0,
+  "links": [
+    {
+      "icon": "dashboard",
+      "tags": [],
+      "title": "TeslaMate",
+      "tooltip": "",
+      "type": "link",
+      "url": "${base_url:raw}"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "tesla"
+      ],
+      "title": "Dashboards",
+      "type": "dashboards"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [
+        "EcosDashboards"
+      ],
+      "targetBlank": false,
+      "title": "Ecos Dashboards",
+      "tooltip": "",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC",
+        "includeAll": false,
+        "label": "Car",
+        "name": "car_id",
+        "options": [],
+        "query": "SELECT\n    id as __value,\n    CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) end as __text\nFROM cars\nORDER BY display_priority ASC, name ASC, vin ASC",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT unit_of_length FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "length_unit",
+        "options": [],
+        "query": "SELECT unit_of_length FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "temp_unit",
+        "options": [],
+        "query": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT preferred_range FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "preferred_range",
+        "options": [],
+        "query": "SELECT preferred_range FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT base_url FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "SELECT base_url FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "Efficiency (Wh/km)",
+        "multi": false,
+        "name": "efficiency",
+        "options": [],
+        "query": "SELECT efficiency FROM cars WHERE id = $car_id",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "version": 1,
+  "description": "Phantom drain analysis: how much range is lost between drives, why, and when. Part of Teslamate Ecos custom dashboards.",
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "panels": [],
+      "title": "Summary",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average range lost per day. Only gaps 30min\u20137 days. Zero-loss days included.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "orange",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "id": 200,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND(AVG(loss)::numeric, 1) AS \"Avg Daily Loss ['$length_unit']\" FROM (SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1) AS daily",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Daily Loss",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average range lost per hour while parked. Only gaps 30min\u20137 days.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "orange",
+                "value": 1.0
+              },
+              {
+                "color": "red",
+                "value": 2.0
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "id": 201,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(SUM(gap_hours), 0))::numeric, 2) AS \"Avg Hourly Loss ['$length_unit'/h]\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Hourly Loss",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Total range lost to phantom drain. Only gaps 30min\u20137 days.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "orange",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "id": 202,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Total Lost ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Range Lost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Estimated cumulative energy lost using $efficiency variable.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 203,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND((SUM(GREATEST(end_range_km - next_start_range_km, 0)) * $efficiency / 1000.0)::numeric, 1) AS \"Est. Energy Lost [kWh]\" FROM drive_gaps WHERE next_start_range_km IS NOT NULL AND end_range_km > next_start_range_km AND gap_hours > 0.5 AND gap_hours < 168",
+          "refId": "A"
+        }
+      ],
+      "title": "Est. Energy Lost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Daily phantom drain (bars) with 7-day rolling average (orange dashed). Only gaps 30min\u20137 days.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7-Day Avg"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 204,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT end_date::date AS time, ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Range Lost ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1 ORDER BY 1",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT day AS time, ROUND(AVG(loss) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"7-Day Avg\" FROM (SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1) AS daily ORDER BY day",
+          "refId": "B"
+        }
+      ],
+      "title": "Daily Phantom Drain",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Monthly total range lost. Each bar = one calendar month.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 205,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.6,
+        "fullHighlight": true,
+        "groupWidth": 0.75,
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": -45,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT TO_CHAR(end_date::date, 'YYYY-MM') AS \"Month\", ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Total Loss ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1 ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Range Loss",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average drain by day of week. Higher values may indicate Sentry Mode or scheduled events.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 206,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.55,
+        "fullHighlight": true,
+        "groupWidth": 0.75,
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT CASE EXTRACT(DOW FROM end_date) WHEN 0 THEN 'Sun' WHEN 1 THEN 'Mon' WHEN 2 THEN 'Tue' WHEN 3 THEN 'Wed' WHEN 4 THEN 'Thu' WHEN 5 THEN 'Fri' WHEN 6 THEN 'Sat' END AS \"Day\", ROUND(AVG(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Avg Loss ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY EXTRACT(DOW FROM end_date) ORDER BY EXTRACT(DOW FROM end_date)",
+          "refId": "A"
+        }
+      ],
+      "title": "By Day of Week",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "description": "Average hourly drain rate by outside temperature. Cold and hot extremes both increase phantom drain.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "gradientMode": "scheme",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-blue",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 0.3
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "orange",
+                "value": 1.2
+              },
+              {
+                "color": "red",
+                "value": 1.8
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "id": 207,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.55,
+        "fullHighlight": true,
+        "groupWidth": 0.75,
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, LEAD(d.outside_temp_avg) OVER (ORDER BY d.start_date) AS next_outside_temp FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT CASE WHEN next_outside_temp < -10 THEN '< -10\u00b0C' WHEN next_outside_temp < 0 THEN '-10 to 0\u00b0C' WHEN next_outside_temp < 10 THEN '0 to 10\u00b0C' WHEN next_outside_temp < 20 THEN '10 to 20\u00b0C' WHEN next_outside_temp < 30 THEN '20 to 30\u00b0C' ELSE '> 30\u00b0C' END AS \"Temperature\", CASE WHEN next_outside_temp < -10 THEN 1 WHEN next_outside_temp < 0 THEN 2 WHEN next_outside_temp < 10 THEN 3 WHEN next_outside_temp < 20 THEN 4 WHEN next_outside_temp < 30 THEN 5 ELSE 6 END AS sort, ROUND(AVG((GREATEST(end_range - next_start_range, 0) / NULLIF(gap_hours, 0)))::numeric, 2) AS \"Avg Hourly Loss ['$length_unit'/h]\", COUNT(*) AS \"Sessions\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 AND next_outside_temp IS NOT NULL GROUP BY 1, 2 ORDER BY 2",
+          "refId": "A"
+        }
+      ],
+      "title": "By Outside Temperature",
+      "type": "barchart"
+    },
+    {
+      "id": 209,
+      "type": "row",
+      "title": "Distribution",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "collapsed": false
+    },
+    {
+      "id": 210,
+      "type": "barchart",
+      "title": "Drain Rate Distribution",
+      "description": "Distribution of range loss per parking gap. Bucket size: 0.25 km. Shows how often different drain levels occur across all parking events.",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "datasource": {
+        "type": "postgresql",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.55,
+        "fullHighlight": true,
+        "groupWidth": 0.75,
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "xField": "bucket"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgresql",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date, d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT\n  width_bucket(GREATEST(end_range - next_start_range, 0), 0, 6, 24) * 0.25 - 0.125 AS bucket,\n  COUNT(*)::int AS frequency\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5 AND gap_hours < 168\nGROUP BY width_bucket(GREATEST(end_range - next_start_range, 0), 0, 6, 24)\nORDER BY bucket"
+        }
+      ]
+    }
+  ]
+}

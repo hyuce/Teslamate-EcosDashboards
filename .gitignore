@@ -1,0 +1,17 @@
+# Grafana
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Docs (design specs, plans — not pushed)
+docs/
+.superpowers/
