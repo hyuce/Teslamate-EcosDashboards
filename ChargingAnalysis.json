@@ -1246,7 +1246,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT $__timeGroup(cp.end_date, '1d') AS time, ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"AC\" FROM charging_processes cp WHERE cp.car_id = $car_id AND $__timeFilter(cp.end_date) AND cp.charge_energy_added > 0 AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) GROUP BY 1 ORDER BY 1",
+          "rawSql": "SELECT $__timeGroup(cp.end_date, '1d') AS time, ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"AC\" FROM charging_processes cp WHERE cp.car_id = $car_id AND $__timeFilter(cp.start_date) AND cp.charge_energy_added > 0 AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) GROUP BY 1 ORDER BY 1",
           "refId": "A"
         },
         {
