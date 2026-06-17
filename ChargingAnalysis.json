@@ -136,7 +136,7 @@
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND((SUM(charge_energy_added) / NULLIF(SUM(charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(end_date)\n  AND charge_energy_added > 0\n  AND charge_energy_used > 0",
+          "rawSql": "SELECT\n  ROUND((SUM(charge_energy_added) / NULLIF(SUM(charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\n  AND charge_energy_used > 0",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1218,7 +1218,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 45
       },
       "id": 50,
       "options": {
@@ -1265,9 +1265,9 @@
       "type": "timeseries"
     },
     {
-      "type": "heatmap",
+      "type": "table",
       "title": "Efficiency vs Temperature",
-      "description": "Charging efficiency distribution by outside temperature. X-axis: outside temperature ranges. Y-axis: efficiency ranges. Color intensity = number of charging sessions.",
+      "description": "Charging efficiency distribution by outside temperature. Rows: temperature ranges. Columns: efficiency ranges. Cell color = session count.",
       "gridPos": {
         "h": 10,
         "w": 24,
@@ -1288,51 +1288,74 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 10 THEN 'Cold'\n      WHEN temp < 20 THEN 'Mild'\n      ELSE 'Warm'\n    END AS \"Temp\",\n    CASE\n      WHEN efficiency < 85 THEN 'Below85'\n      WHEN efficiency < 90 THEN '85to90'\n      WHEN efficiency < 95 THEN '90to95'\n      WHEN efficiency < 100 THEN '95to100'\n      ELSE 'Above100'\n    END AS \"Efficiency\"\n  FROM sessions\n)\nSELECT\n  \"Efficiency\",\n  \"Temp\",\n  COUNT(*)::int AS \"Sessions\"\nFROM data\nGROUP BY \"Efficiency\", \"Temp\"\nORDER BY \"Efficiency\", \"Temp\"",
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 5 THEN '0-5\u00b0C'\n      WHEN temp < 10 THEN '5-10\u00b0C'\n      WHEN temp < 15 THEN '10-15\u00b0C'\n      WHEN temp < 20 THEN '15-20\u00b0C'\n      WHEN temp < 25 THEN '20-25\u00b0C'\n      ELSE '25-30\u00b0C'\n    END AS temp_range,\n    CASE\n      WHEN efficiency < 85 THEN '<85%'\n      WHEN efficiency < 90 THEN '85-90%'\n      WHEN efficiency < 95 THEN '90-95%'\n      WHEN efficiency < 100 THEN '95-100%'\n      ELSE '>100%'\n    END AS eff_range\n  FROM sessions\n)\nSELECT\n  t.temp_range AS \"Temperature\",\n  COUNT(*) FILTER (WHERE d.eff_range = '<85%') AS \"<85%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '85-90%') AS \"85-90%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '90-95%') AS \"90-95%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '95-100%') AS \"95-100%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '>100%') AS \">100%\"\nFROM (VALUES ('0-5\u00b0C'),('5-10\u00b0C'),('10-15\u00b0C'),('15-20\u00b0C'),('20-25\u00b0C'),('25-30\u00b0C')) AS t(temp_range)\nLEFT JOIN data d ON d.temp_range = t.temp_range\nGROUP BY t.temp_range\nORDER BY t.temp_range",
           "refId": "A"
         }
       ],
       "options": {
-        "calculate": false,
-        "cellGap": 2,
-        "cellRadius": 0,
-        "color": {
-          "mode": "scheme",
-          "scheme": "Spectral",
-          "reverse": false,
-          "steps": 64,
-          "exponent": 0.5,
-          "scale": "exponential"
+        "cellHeight": "md",
+        "footer": {
+          "show": false
         },
-        "legend": {
-          "show": true,
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false,
-          "unit": "short",
-          "decimals": 0
-        },
-        "rowsFrame": {
-          "layout": "valuesInRows"
-        }
+        "showHeader": true,
+        "sortBy": []
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "scaleDistribution": {
-              "type": "linear"
-            }
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "continuous-RdYlGr"
           },
-          "min": 0
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "color-background"
+            },
+            "displayMode": "gradient",
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent"
+              }
+            ]
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temperature"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "auto"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          }
+        ]
       }
     }
   ],
