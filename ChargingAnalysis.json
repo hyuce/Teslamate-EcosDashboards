@@ -951,7 +951,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 35
       },
       "type": "row",
       "title": "Details",
@@ -1066,7 +1066,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 36,
         "w": 24,
         "h": 9
       },
@@ -1218,7 +1218,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 45
       },
       "id": 50,
       "options": {
@@ -1306,7 +1306,7 @@
         "h": 6,
         "w": 12,
         "x": 6,
-        "y": 43
+        "y": 53
       },
       "id": 51,
       "options": {
@@ -1346,9 +1346,9 @@
       "description": "Charging efficiency distribution by outside temperature. X-axis: outside temperature ranges. Y-axis: efficiency ranges. Color intensity = number of charging sessions.",
       "gridPos": {
         "h": 10,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 50
+        "y": 25
       },
       "id": 904,
       "datasource": {
