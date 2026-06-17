@@ -1218,7 +1218,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 39
       },
       "id": 50,
       "options": {
@@ -1265,82 +1265,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "TeslaMate"
-      },
-      "description": "Current charging efficiency gauge with thresholds. Green = efficient, orange/red = significant losses.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 75
-              },
-              {
-                "color": "yellow",
-                "value": 85
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent",
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 6,
-        "y": 53
-      },
-      "id": 51,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true,
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "TeslaMate"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT ROUND((SUM(charge_energy_added) / NULLIF(SUM(charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Charging Efficiency [%]\" FROM charging_processes WHERE car_id = $car_id AND $__timeFilter(end_date) AND charge_energy_added > 0 AND charge_energy_used > 0",
-          "refId": "A"
-        }
-      ],
-      "title": "Efficiency Gauge",
-      "type": "gauge"
-    },
-    {
       "type": "heatmap",
       "title": "Efficiency vs Temperature",
       "description": "Charging efficiency distribution by outside temperature. X-axis: outside temperature ranges. Y-axis: efficiency ranges. Color intensity = number of charging sessions.",
@@ -1364,7 +1288,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 10 THEN 1\n      WHEN temp < 20 THEN 2\n      ELSE 3\n    END AS temp_bucket,\n    CASE\n      WHEN efficiency < 85 THEN 1\n      WHEN efficiency < 90 THEN 2\n      WHEN efficiency < 95 THEN 3\n      WHEN efficiency < 100 THEN 4\n      ELSE 5\n    END AS eff_bucket\n  FROM sessions\n)\nSELECT\n  h.temp_label AS \"Temp\",\n  COUNT(*) FILTER (WHERE d.eff_bucket = 1) AS \"<85%\",\n  COUNT(*) FILTER (WHERE d.eff_bucket = 2) AS \"85-90%\",\n  COUNT(*) FILTER (WHERE d.eff_bucket = 3) AS \"90-95%\",\n  COUNT(*) FILTER (WHERE d.eff_bucket = 4) AS \"95-100%\",\n  COUNT(*) FILTER (WHERE d.eff_bucket = 5) AS \">100%\"\nFROM data d\nRIGHT JOIN (VALUES\n  (1, '0-10\u00b0C'),\n  (2, '10-20\u00b0C'),\n  (3, '20-30\u00b0C')\n) AS h(temp_bucket, temp_label) ON h.temp_bucket = d.temp_bucket\nGROUP BY h.temp_bucket, h.temp_label\nORDER BY h.temp_bucket",
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 10 THEN 'Cold'\n      WHEN temp < 20 THEN 'Mild'\n      ELSE 'Warm'\n    END AS \"Temp\",\n    CASE\n      WHEN efficiency < 85 THEN 'Below85'\n      WHEN efficiency < 90 THEN '85to90'\n      WHEN efficiency < 95 THEN '90to95'\n      WHEN efficiency < 100 THEN '95to100'\n      ELSE 'Above100'\n    END AS \"Efficiency\"\n  FROM sessions\n)\nSELECT\n  \"Efficiency\",\n  \"Temp\",\n  COUNT(*)::int AS \"Sessions\"\nFROM data\nGROUP BY \"Efficiency\", \"Temp\"\nORDER BY \"Efficiency\", \"Temp\"",
           "refId": "A"
         }
       ],
@@ -1396,7 +1320,7 @@
           "decimals": 0
         },
         "rowsFrame": {
-          "layout": "rows"
+          "layout": "valuesInRows"
         }
       },
       "fieldConfig": {
