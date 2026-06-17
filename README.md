@@ -13,7 +13,7 @@ Each dashboard is a separate, focused view:
 |-----------|--------|---------|
 | **Phantom Drain** | 9 | Range and energy lost while parked, patterns by day-of-week and temperature |
 | **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
-| **Charging Efficiency & Details** | 8 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, session analysis |
+| **Charging Efficiency & Details** | 11 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature heatmap, session analysis |
 | **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 
 ---
@@ -71,6 +71,7 @@ Each dashboard is a separate, focused view:
 | Deep vs Shallow Charging | Bar Chart | Capacity estimates by charge depth category |
 | AC vs DC Charging Count | Pie | Number of AC vs DC fast charging sessions |
 | AC vs DC Energy Breakdown | Pie | Energy added by AC vs DC |
+| Efficiency vs Temperature | Heatmap | Efficiency distribution by outside temperature range (0-10°C, 10-20°C, 20-30°C) |
 | Recent 20 Charge Sessions | Table | Full details: date, location, capacity, efficiency, SOC, type |
 
 ### Charging Habits
