@@ -596,10 +596,29 @@
             ]
           },
           "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "viz": false
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           }
         },
@@ -644,22 +663,26 @@
       },
       "id": 504,
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": true
-        },
+        "orientation": "horizontal",
+        "xField": "Type",
+        "colorByField": "Type",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
         "tooltip": {
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
+        },
+        "legend": {
+          "showVal": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
         }
       },
       "pluginVersion": "11.5.2",
@@ -673,7 +696,7 @@
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  CASE WHEN (end_battery_level - start_battery_level) > 30 THEN 'Deep (>30pp)' ELSE 'Shallow (\u226430pp)' END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\nGROUP BY 1",
+          "rawSql": "SELECT\n  CASE WHEN (end_battery_level - start_battery_level) > 30 THEN 'Deep (>30pp)' ELSE 'Shallow (\u226430pp)' END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
           "refId": "A",
           "sql": {
             "columns": [
@@ -695,7 +718,7 @@
         }
       ],
       "title": "Deep vs Shallow Charging",
-      "type": "piechart",
+      "type": "barchart",
       "description": "Share of sessions with SOC delta above 30pp (deep \u2014 better for capacity estimates) vs. below (shallow)."
     },
     {
@@ -1352,6 +1375,514 @@
               {
                 "id": "custom.align",
                 "value": "left"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "stat",
+      "title": "AC Efficiency",
+      "description": "Average charging efficiency for AC sessions",
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "id": 905,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"AC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "DC Fast Efficiency",
+      "description": "Average charging efficiency for DC Fast sessions",
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "id": 906,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"DC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "type": "table",
+      "title": "Monthly Efficiency Stats",
+      "description": "Monthly breakdown of charging efficiency, sessions, and energy",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "id": 907,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  TO_CHAR(cp.start_date, 'YYYY-MM') AS \"Month\",\n  COUNT(*) AS \"Sessions\",\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\",\n  ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"Total Energy [kWh]\",\n  ROUND(AVG(cp.duration_min)::numeric, 0) AS \"Avg Duration [min]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND cp.charge_energy_added > 0\nGROUP BY 1\nORDER BY 1 DESC",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Month",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "displayMode": "auto",
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Efficiency [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "gradient"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-RdYlGr"
+                }
+              },
+              {
+                "id": "min",
+                "value": 70
+              },
+              {
+                "id": "max",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Charge Duration Distribution",
+      "description": "Distribution of charging session durations",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 66
+      },
+      "id": 908,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CASE\n    WHEN duration_min < 15 THEN '<15 min'\n    WHEN duration_min < 30 THEN '15-30 min'\n    WHEN duration_min < 60 THEN '30-60 min'\n    WHEN duration_min < 120 THEN '1-2 hours'\n    WHEN duration_min < 240 THEN '2-4 hours'\n    ELSE '>4 hours'\n  END AS \"Duration\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "vertical",
+        "xField": "Duration",
+        "colorByField": "Duration",
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "showVal": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Efficiency by SOC Range",
+      "description": "Average charging efficiency at different SOC levels",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 66
+      },
+      "id": 909,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CASE\n    WHEN start_battery_level < 20 THEN '0-20%'\n    WHEN start_battery_level < 40 THEN '20-40%'\n    WHEN start_battery_level < 60 THEN '40-60%'\n    WHEN start_battery_level < 80 THEN '60-80%'\n    ELSE '80-100%'\n  END AS \"SOC Range\",\n  ROUND(AVG(charge_energy_added / NULLIF(charge_energy_used, 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_used > 0\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "vertical",
+        "xField": "SOC Range",
+        "colorByField": "SOC Range",
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "showVal": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top/Bottom 10 Sessions by Efficiency",
+      "description": "Most and least efficient charging sessions",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 74
+      },
+      "id": 910,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT * FROM (\n  SELECT\n    cp.start_date AS \"Date\",\n    COALESCE(g.name, a.name, 'Unknown') AS \"Location\",\n    ROUND((cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Efficiency [%]\",\n    ROUND(cp.charge_energy_added::numeric, 1) AS \"Energy [kWh]\",\n    cp.duration_min AS \"Duration [min]\",\n    'Top 10' AS \"Category\"\n  FROM charging_processes cp\n  LEFT JOIN geofences g ON g.id = cp.geofence_id\n  LEFT JOIN addresses a ON a.id = cp.address_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n  ORDER BY 3 DESC\n  LIMIT 10\n) top\nUNION ALL\nSELECT * FROM (\n  SELECT\n    cp.start_date AS \"Date\",\n    COALESCE(g.name, a.name, 'Unknown') AS \"Location\",\n    ROUND((cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Efficiency [%]\",\n    ROUND(cp.charge_energy_added::numeric, 1) AS \"Energy [kWh]\",\n    cp.duration_min AS \"Duration [min]\",\n    'Bottom 10' AS \"Category\"\n  FROM charging_processes cp\n  LEFT JOIN geofences g ON g.id = cp.geofence_id\n  LEFT JOIN addresses a ON a.id = cp.address_id\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n  ORDER BY 3 ASC\n  LIMIT 10\n) bottom\nORDER BY \"Category\", \"Efficiency [%]\" DESC",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Category",
+            "desc": false
+          },
+          {
+            "displayName": "Efficiency [%]",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "displayMode": "auto",
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Efficiency [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "gradient"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-RdYlGr"
+                }
+              },
+              {
+                "id": "min",
+                "value": 70
+              },
+              {
+                "id": "max",
+                "value": 110
               }
             ]
           }
