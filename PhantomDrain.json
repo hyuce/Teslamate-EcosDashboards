@@ -1146,9 +1146,9 @@
       }
     },
     {
-      "type": "state-timeline",
-      "title": "Vehicle State Timeline",
-      "description": "Vehicle states over time: online (green), asleep (blue), offline (gray). Shows correlation with phantom drain events.",
+      "type": "barchart",
+      "title": "Drain Rate by Vehicle State",
+      "description": "Average hourly drain rate when car is in each state. Shows which state causes the most drain (online/Sentry Mode vs asleep).",
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -1167,72 +1167,121 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "time_series",
+          "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  start_date AS time,\n  state AS metric,\n  1 AS value\nFROM states\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\nORDER BY start_date",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ngap_states AS (\n  SELECT \n    dg.start_date,\n    dg.end_date,\n    dg.gap_hours,\n    GREATEST(dg.end_range - dg.next_start_range, 0) AS range_loss,\n    (SELECT s.state FROM states s \n     WHERE s.car_id = $car_id \n       AND s.start_date <= dg.start_date \n       AND (s.end_date IS NULL OR s.end_date >= dg.start_date)\n     ORDER BY s.start_date DESC LIMIT 1) AS prev_state\n  FROM drive_gaps dg\n  WHERE dg.next_start_range IS NOT NULL\n    AND dg.end_range > dg.next_start_range\n    AND dg.gap_hours > 0.5\n    AND dg.gap_hours < 168\n)\nSELECT \n  COALESCE(prev_state, 'unknown') AS \"State\",\n  ROUND(AVG(range_loss / NULLIF(gap_hours, 0))::numeric, 3) AS \"Avg Hourly Drain\",\n  COUNT(*) AS \"Events\"\nFROM gap_states\nGROUP BY 1\nORDER BY \"Avg Hourly Drain\" DESC",
           "refId": "A"
         }
       ],
       "options": {
-        "mergeValues": true,
-        "rowHeight": 0.9,
-        "showValue": "auto",
+        "orientation": "vertical",
+        "xField": "State",
+        "colorByField": "State",
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
         "tooltip": {
           "mode": "single",
           "sort": "none"
         },
         "legend": {
-          "show": true,
-          "displayMode": "list",
-          "placement": "bottom"
+          "show": false
         }
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "fillOpacity": 70,
-            "lineWidth": 0
+          "unit": "lengthkm",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
           },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "online": {
-                  "text": "Online",
-                  "color": "green"
-                }
-              }
+          "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
             },
-            {
-              "type": "value",
-              "options": {
-                "asleep": {
-                  "text": "Asleep",
-                  "color": "blue"
-                }
-              }
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
             },
-            {
-              "type": "value",
-              "options": {
-                "offline": {
-                  "text": "Offline",
-                  "color": "gray"
-                }
-              }
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
-          ],
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "transparent"
               }
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "asleep"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "online"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "offline"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "gray",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       }
     },
     {
