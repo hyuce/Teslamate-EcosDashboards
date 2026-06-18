@@ -11,7 +11,7 @@ Each dashboard is a separate, focused view:
 
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
-| **Phantom Drain** | 9 | Range and energy lost while parked, patterns by day-of-week and temperature |
+| **Phantom Drain** | 18 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state timeline, seasonal comparison |
 | **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
 | **Charging Efficiency & Details** | 15 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
 | **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
@@ -33,8 +33,15 @@ Each dashboard is a separate, focused view:
 | Daily Phantom Drain | Time Series | Range lost between drives daily, with 7-day moving average |
 | Monthly Total Range Loss | Bar Chart | Bar chart comparing total loss per month |
 | Phantom Drain by Day of Week | Bar Chart | Average drain broken down by weekday |
-| Phantom Drain vs Outside Temperature | Heatmap | Correlation between temperature and drain rate |
+| Phantom Drain vs Outside Temperature | Bar Chart | Correlation between temperature and drain rate |
 | Drain Rate Distribution | Histogram | Distribution of range loss per parking interval |
+| Worst Drain Days | Table | Top 20 days with highest drain, hourly rate, and temperature |
+| Vehicle State Timeline | State Timeline | Online/asleep/offline states over time |
+| State Distribution | Pie Chart | Time spent in each vehicle state |
+| Drain vs Park Duration | Scatter | Correlation between park duration and range lost |
+| Monthly Drain Trend | Time Series | Monthly total with 3-month moving average |
+| Drain Rate by Hour of Day | Bar Chart | Average hourly drain by parking start hour |
+| Seasonal Drain Comparison | Bar Chart | Winter vs Spring vs Summer vs Fall drain rates |
 
 ### Battery Capacity & Degradation
 
