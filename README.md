@@ -11,7 +11,7 @@ Each dashboard is a separate, focused view:
 
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
-| **Phantom Drain** | 18 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state timeline, seasonal comparison |
+| **Phantom Drain** | 20 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state timeline, seasonal comparison, Sentry Mode impact |
 | **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
 | **Charging Efficiency & Details** | 15 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
 | **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
@@ -42,6 +42,8 @@ Each dashboard is a separate, focused view:
 | Monthly Drain Trend | Time Series | Monthly total with 3-month moving average |
 | Drain Rate by Hour of Day | Bar Chart | Average hourly drain by parking start hour |
 | Seasonal Drain Comparison | Bar Chart | Winter vs Spring vs Summer vs Fall drain rates |
+| Sentry Mode Impact | Stat | Estimated drain during Sentry Mode events |
+| Charging vs Non-Charging Days | Bar Chart | Average drain on charging vs non-charging days |
 
 ### Battery Capacity & Degradation
 
