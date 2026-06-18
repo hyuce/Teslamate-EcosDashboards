@@ -36,7 +36,7 @@ Each dashboard is a separate, focused view:
 | Phantom Drain vs Outside Temperature | Bar Chart | Correlation between temperature and drain rate |
 | Drain Rate Distribution | Histogram | Distribution of range loss per parking interval |
 | Worst Drain Days | Table | Top 20 days with highest drain, hourly rate, and temperature |
-| Vehicle State Timeline | State Timeline | Online/asleep/offline states over time |
+| Drain Rate by Vehicle State | Bar Chart | Average hourly drain rate when car is asleep vs online vs offline |
 | State Distribution | Pie Chart | Time spent in each vehicle state |
 | Drain vs Park Duration | Scatter | Correlation between park duration and range lost |
 | Monthly Drain Trend | Time Series | Monthly total with 3-month moving average |
