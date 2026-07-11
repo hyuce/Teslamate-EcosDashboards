@@ -11,7 +11,7 @@ Each dashboard is a separate, focused view:
 
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
-| **Phantom Drain** | 20 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state timeline, seasonal comparison, Sentry Mode impact |
+| **Phantom Drain** | 12 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state analysis, seasonal trend |
 | **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
 | **Charging Efficiency & Details** | 15 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
 | **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
@@ -31,19 +31,13 @@ Each dashboard is a separate, focused view:
 | Total Range Lost | Stat | Cumulative range lost in selected period |
 | Est. Energy Lost (kWh) | Stat | Estimated energy lost using car efficiency factor |
 | Daily Phantom Drain | Time Series | Range lost between drives daily, with 7-day moving average |
-| Monthly Total Range Loss | Bar Chart | Bar chart comparing total loss per month |
 | Phantom Drain by Day of Week | Bar Chart | Average drain broken down by weekday |
-| Phantom Drain vs Outside Temperature | Bar Chart | Correlation between temperature and drain rate |
-| Drain Rate Distribution | Histogram | Distribution of range loss per parking interval |
+| Phantom Drain vs Outside Temperature | Bar Chart | Average hourly drain by outside temperature. Color-coded from blue (cold) to red (hot). Both extremes increase phantom drain |
 | Worst Drain Days | Table | Top 20 days with highest drain, hourly rate, and temperature |
-| Drain Rate by Vehicle State | Bar Chart | Average hourly drain rate when car is asleep vs online vs offline |
-| State Distribution | Pie Chart | Time spent in each vehicle state |
-| Drain vs Park Duration | Scatter | Correlation between park duration and range lost |
+| Drain Rate by Vehicle State | Bar Chart | Average hourly drain rate when asleep vs online vs offline |
+| Drain vs Park Duration | Bar Chart | Average drain by parking duration range |
 | Monthly Drain Trend | Time Series | Monthly total with 3-month moving average |
-| Drain Rate by Hour of Day | Bar Chart | Average hourly drain by parking start hour |
-| Seasonal Drain Comparison | Bar Chart | Winter vs Spring vs Summer vs Fall drain rates |
 | Sentry Mode Impact | Stat | Estimated drain during Sentry Mode events |
-| Charging vs Non-Charging Days | Bar Chart | Average drain on charging vs non-charging days |
 
 ### Battery Capacity & Degradation
 
