@@ -12,8 +12,8 @@ Each dashboard is a separate, focused view:
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
 | **Phantom Drain** | 12 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state analysis, seasonal trend |
-| **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
-| **Charging Efficiency & Details** | 15 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
+| **Battery Capacity & Degradation** | 16 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
+| **Charging Efficiency & Details** | 16 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
 | **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 
 ---
@@ -58,6 +58,7 @@ Each dashboard is a separate, focused view:
 | Est. Charge Cycles | Stat | Total energy charged divided by current capacity |
 | Degradation / 10,000 km | Stat | Capacity loss per 10,000 km driven |
 | Days Since Deep Session | Stat | Days since the last deep charge session used |
+| Monthly Capacity Overview | Time Series | Monthly average capacity with trend line |
 | Capacity vs Outside Temperature | Time Series | Capacity estimate over time with outside temperature overlay |
 | Capacity: DC Fast vs AC | Time Series | Capacity estimate comparison between DC fast and AC charging |
 
@@ -72,8 +73,8 @@ Each dashboard is a separate, focused view:
 | Charging Efficiency Trend | Time Series | Efficiency over time with per-charge points |
 | Charge Sessions & Capacity | Time Series | Per-session capacity estimates over time |
 | Deep vs Shallow Charging | Bar Chart | Capacity estimates by charge depth category |
-| AC vs DC Charging Count | Pie | Number of AC vs DC fast charging sessions |
-| AC vs DC Energy Breakdown | Pie | Energy added by AC vs DC |
+| AC vs DC Charging | Pie | Number of AC vs DC fast charging sessions |
+| AC vs DC Energy | Pie | Energy added by AC vs DC |
 | AC Efficiency | Stat | Average charging efficiency for AC sessions |
 | DC Fast Efficiency | Stat | Average charging efficiency for DC Fast sessions |
 | Efficiency vs Temperature | Table | Efficiency distribution by outside temperature range |
@@ -81,6 +82,7 @@ Each dashboard is a separate, focused view:
 | Charge Duration Distribution | Bar Chart | Distribution of session durations (<15min to >4hours) |
 | Efficiency by SOC Range | Bar Chart | Average efficiency at different SOC levels (0-20%, 20-40%, etc.) |
 | Top/Bottom 10 Sessions | Table | Most and least efficient charging sessions with details |
+| Daily Energy Added (AC vs DC) | Time Series | Daily energy added stacked by charger type |
 | Recent 20 Charge Sessions | Table | Full details: date, location, capacity, efficiency, SOC, type |
 
 ### Charging Habits
@@ -97,7 +99,7 @@ Each dashboard is a separate, focused view:
 | Number of Charges per Month | Bar Chart | Charging frequency over time |
 | Charging Cost per Month | Bar Chart | Monthly cost and energy used |
 | AC vs DC Energy Trend | Time Series | Charging energy over time, AC vs DC stacked |
-| AC vs DC Charges | Donut | Session count by charger type |
+| AC vs DC Charging Breakdown | Donut | Session count by charger type |
 | Top 15 Charging Locations | Table | Top 15 locations with session stats |
 | Post-Charge Idle Time | Table | Time car stayed plugged in after full, color-coded |
 | Monthly Charging Stats | Table | Comprehensive monthly summary |
