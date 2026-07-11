@@ -1,6 +1,6 @@
 # TeslaMate Ecos Dashboards
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Grafana](https://img.shields.io/badge/Grafana-11%2B-orange)](https://grafana.com)
 
 > **Why "Ecos"?** Ecos is the name of the author's Tesla vehicle. These dashboards were built and tested on that car — hence the repository and folder name *Teslamate-EcosDashboards*.
@@ -307,7 +307,7 @@ Pull requests, suggestions, and bug reports are welcome.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
 
 ---
 
