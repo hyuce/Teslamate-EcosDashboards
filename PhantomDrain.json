@@ -184,7 +184,7 @@
         "w": 24,
         "h": 1
       },
-      "id": 100,
+      "id": 101,
       "panels": [],
       "title": "Summary",
       "type": "row"
@@ -194,7 +194,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Average range lost per day. Only gaps 30min\u20137 days. Zero-loss days included.",
+      "description": "Average range lost per day. Only gaps 30min–7 days. Zero-loss days included.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -210,15 +210,15 @@
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 3
               },
               {
                 "color": "red",
-                "value": 10
+                "value": 8
               }
             ]
           },
-          "unit": "short",
+          "unit": "lengthkm",
           "custom": {}
         },
         "overrides": []
@@ -231,7 +231,7 @@
       },
       "id": 200,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
@@ -265,7 +265,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Average range lost per hour while parked. Only gaps 30min\u20137 days.",
+      "description": "Average range lost per hour while parked. Only gaps 30min–7 days.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -281,15 +281,15 @@
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 0.2
               },
               {
                 "color": "red",
-                "value": 10
+                "value": 0.5
               }
             ]
           },
-          "unit": "short",
+          "unit": "velocitykmh",
           "custom": {}
         },
         "overrides": []
@@ -302,7 +302,7 @@
       },
       "id": 201,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
@@ -336,7 +336,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Total range lost to phantom drain. Only gaps 30min\u20137 days.",
+      "description": "Total range lost to phantom drain. Only gaps 30min–7 days.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -352,15 +352,15 @@
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 100
               },
               {
                 "color": "red",
-                "value": 10
+                "value": 500
               }
             ]
           },
-          "unit": "short",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -373,7 +373,7 @@
       },
       "id": 202,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
@@ -423,11 +423,11 @@
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 50
               },
               {
                 "color": "red",
-                "value": 10
+                "value": 200
               }
             ]
           },
@@ -444,7 +444,7 @@
       },
       "id": 203,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
@@ -474,24 +474,72 @@
       "type": "stat"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 1
+      },
+      "id": 102,
+      "panels": [],
+      "title": "Trends",
+      "type": "row"
+    },
+    {
+      "type": "timeseries",
+      "title": "Daily Phantom Drain",
+      "description": "Daily range lost while parked with 7-day rolling average. Only parking gaps 30min–7 days considered. Orange bars show daily loss, blue dashed line shows trend.",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "id": 204,
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Daily phantom drain (bars) with 7-day rolling average (orange dashed). Only gaps 30min\u20137 days.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ndaily_loss AS (\n  SELECT\n    end_date::date AS day,\n    SUM(GREATEST(end_range - next_start_range, 0)) AS loss\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL\n    AND end_range > next_start_range\n    AND gap_hours > 0.5\n    AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT\n  day AS time,\n  ROUND(loss::numeric, 1) AS \"Daily Loss [$length_unit]\",\n  ROUND(AVG(loss) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"7-Day Avg\"\nFROM daily_loss\nORDER BY day",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        }
+      },
       "fieldConfig": {
         "defaults": {
+          "unit": "lengthkm",
+          "min": 0,
           "color": {
-            "mode": "palette-classic"
+            "mode": "fixed",
+            "fixedColor": "#E67E22"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "barWidthFactor": 0.6,
             "drawStyle": "bars",
             "fillOpacity": 70,
             "gradientMode": "opacity",
@@ -500,9 +548,8 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -522,12 +569,11 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#E67E22",
                 "value": null
               }
             ]
-          },
-          "unit": "short"
+          }
         },
         "overrides": [
           {
@@ -539,7 +585,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "orange",
+                  "fixedColor": "#1F78B4",
                   "mode": "fixed"
                 }
               },
@@ -572,59 +618,28 @@
               {
                 "id": "custom.fillOpacity",
                 "value": 0
+              },
+              {
+                "id": "custom.spanNulls",
+                "value": true
               }
             ]
           }
         ]
-      },
+      }
+    },
+    {
+      "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 4,
+        "y": 11,
         "w": 24,
-        "h": 7
+        "h": 1
       },
-      "id": 204,
-      "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "TeslaMate"
-          },
-          "editorMode": "code",
-          "format": "time_series",
-          "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT end_date::date AS time, ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Range Lost ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1 ORDER BY 1",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "TeslaMate"
-          },
-          "editorMode": "code",
-          "format": "time_series",
-          "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT day AS time, ROUND(AVG(loss) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)::numeric, 1) AS \"7-Day Avg\" FROM (SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1) AS daily ORDER BY day",
-          "refId": "B"
-        }
-      ],
-      "title": "Daily Phantom Drain",
-      "type": "timeseries"
+      "id": 103,
+      "panels": [],
+      "title": "Patterns",
+      "type": "row"
     },
     {
       "datasource": {
@@ -635,7 +650,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "mode": "fixed",
+            "fixedColor": "orange"
           },
           "custom": {
             "fillOpacity": 80,
@@ -663,7 +679,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "lengthkm"
         },
         "overrides": []
       },
@@ -716,24 +732,64 @@
       "type": "barchart"
     },
     {
+      "type": "barchart",
+      "title": "Drain Rate by Temperature",
+      "description": "Average hourly range loss by outside temperature. Cold (<5°C) and hot (>25°C) extremes increase phantom drain due to battery thermal management. Events = sample count per bucket.",
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 7
+      },
+      "id": 207,
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Average hourly drain rate by outside temperature. Cold-to-hot color gradient (blue\u2192green\u2192red). Both cold and hot extremes increase phantom drain.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    LEAD(d.outside_temp_avg) OVER (ORDER BY d.start_date) AS next_outside_temp\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT\n  CASE\n    WHEN next_outside_temp < 0 THEN '<0°C'\n    WHEN next_outside_temp < 5 THEN '0-5°C'\n    WHEN next_outside_temp < 10 THEN '5-10°C'\n    WHEN next_outside_temp < 15 THEN '10-15°C'\n    WHEN next_outside_temp < 20 THEN '15-20°C'\n    WHEN next_outside_temp < 25 THEN '20-25°C'\n    ELSE '25°C+'\n  END AS \"Temperature\",\n  ROUND(AVG(GREATEST(end_range - next_start_range, 0) / NULLIF(gap_hours, 0))::numeric, 3) AS \"Avg Hourly Drain\",\n  COUNT(*)::int AS \"Events\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\n  AND next_outside_temp IS NOT NULL\nGROUP BY 1\nORDER BY MIN(next_outside_temp)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "vertical",
+        "xField": "Temperature",
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.85,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "show": false
+        }
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "velocitykmh",
           "min": 0,
           "decimals": 3,
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#E67E22"
           },
           "custom": {
-            "axisPlacement": "left",
+            "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
-            "fillOpacity": 85,
+            "fillOpacity": 90,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -752,7 +808,7 @@
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "line+area"
+              "mode": "off"
             }
           },
           "mappings": [],
@@ -760,130 +816,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.4
-              },
-              {
-                "color": "orange",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 1.0
+                "color": "transparent"
               }
             ]
           }
         },
         "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "<0\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#1f78b4",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "0-5\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#6baed6",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "5-10\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#9ecae1",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "10-15\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#74c476",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "15-20\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#fdae61",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "20-25\u00b0C"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#f46d43",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "25\u00b0C+"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#d73027",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byName",
@@ -897,53 +835,31 @@
               {
                 "id": "decimals",
                 "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8F8F8F",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
-      },
+      }
+    },
+    {
+      "collapsed": false,
       "gridPos": {
-        "x": 12,
-        "y": 11,
-        "w": 12,
-        "h": 7
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 1
       },
-      "id": 207,
-      "options": {
-        "orientation": "vertical",
-        "xField": "Temperature",
-        "colorByField": "Temperature",
-        "xTickLabelRotation": -40,
-        "showValue": "auto",
-        "stacking": "none",
-        "groupWidth": 0.65,
-        "barWidth": 0.8,
-        "barRadius": 0,
-        "fullHighlight": true,
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "legend": {
-          "show": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "TeslaMate"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    LEAD(d.outside_temp_avg) OVER (ORDER BY d.start_date) AS next_outside_temp\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  CASE \n    WHEN next_outside_temp < 0 THEN '<0\u00b0C'\n    WHEN next_outside_temp < 5 THEN '0-5\u00b0C'\n    WHEN next_outside_temp < 10 THEN '5-10\u00b0C'\n    WHEN next_outside_temp < 15 THEN '10-15\u00b0C'\n    WHEN next_outside_temp < 20 THEN '15-20\u00b0C'\n    WHEN next_outside_temp < 25 THEN '20-25\u00b0C'\n    ELSE '25\u00b0C+'\n  END AS \"Temperature\",\n  ROUND(AVG(GREATEST(end_range - next_start_range, 0) / NULLIF(gap_hours, 0))::numeric, 3) AS \"Drain Rate\",\n  COUNT(*)::int AS \"Events\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\n  AND next_outside_temp IS NOT NULL\nGROUP BY 1\nORDER BY MIN(next_outside_temp)",
-          "refId": "A"
-        }
-      ],
-      "title": "By Outside Temperature",
-      "type": "barchart"
+      "id": 104,
+      "panels": [],
+      "title": "Details",
+      "type": "row"
     },
     {
       "type": "table",
@@ -969,7 +885,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.outside_temp_avg\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  DATE(start_date) AS \"Date\",\n  ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Range Lost [$length_unit]\",\n  ROUND(AVG(gap_hours)::numeric, 1) AS \"Park Hours [h]\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(AVG(gap_hours), 0))::numeric, 2) AS \"Hourly Rate [$length_unit/h]\",\n  ROUND(AVG(outside_temp_avg)::numeric, 1) AS \"Temp [\u00b0C]\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY \"Range Lost [$length_unit]\" DESC\nLIMIT 20",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.outside_temp_avg\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  DATE(end_date) AS \"Date\",\n  ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Range Lost [$length_unit]\",\n  ROUND(AVG(gap_hours)::numeric, 1) AS \"Park Hours [h]\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(AVG(gap_hours), 0))::numeric, 2) AS \"Hourly Rate [$length_unit/h]\",\n  ROUND(AVG(outside_temp_avg)::numeric, 1) AS \"Temp [°C]\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY \"Range Lost [$length_unit]\" DESC\nLIMIT 20",
           "refId": "A"
         }
       ],
@@ -1045,7 +961,7 @@
     {
       "type": "barchart",
       "title": "Drain Rate by Vehicle State",
-      "description": "Average hourly drain rate when car is in each state. Shows which state causes the most drain (online/Sentry Mode vs asleep).",
+      "description": "Average hourly range loss per parked state. Asleep = deep sleep (lowest), Online = Sentry/climate active (highest), Offline = unreachable. Events = sample count.",
       "gridPos": {
         "x": 12,
         "y": 19,
@@ -1066,24 +982,22 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ngap_with_state AS (\n  SELECT \n    dg.gap_hours,\n    GREATEST(dg.end_range - dg.next_start_range, 0) AS range_loss,\n    (SELECT s.state::text FROM states s \n     WHERE s.car_id = $car_id \n       AND s.start_date <= dg.start_date \n       AND (s.end_date IS NULL OR s.end_date >= dg.start_date)\n     ORDER BY s.start_date DESC \n     LIMIT 1) AS state\n  FROM drive_gaps dg\n  WHERE dg.next_start_range IS NOT NULL\n    AND dg.end_range > dg.next_start_range\n    AND dg.gap_hours > 0.5\n    AND dg.gap_hours < 168\n)\nSELECT \n  COALESCE(state, 'unknown') AS \"State\",\n  ROUND(AVG(range_loss / NULLIF(gap_hours, 0))::numeric, 3) AS \"Avg Hourly Drain\",\n  COUNT(*) AS \"Events\"\nFROM gap_with_state\nGROUP BY 1\nORDER BY \"Avg Hourly Drain\" DESC",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ngap_with_state AS (\n  SELECT\n    dg.gap_hours,\n    GREATEST(dg.end_range - dg.next_start_range, 0) AS range_loss,\n    (SELECT s.state::text FROM states s\n     WHERE s.car_id = $car_id\n       AND s.start_date <= dg.end_date\n       AND (s.end_date IS NULL OR s.end_date >= dg.end_date)\n     ORDER BY s.start_date DESC\n     LIMIT 1) AS state\n  FROM drive_gaps dg\n  WHERE dg.next_start_range IS NOT NULL\n    AND dg.end_range > dg.next_start_range\n    AND dg.gap_hours > 0.5\n    AND dg.gap_hours < 168\n)\nSELECT\n  COALESCE(state, 'unknown') AS \"State\",\n  ROUND(AVG(range_loss / NULLIF(gap_hours, 0))::numeric, 3) AS \"Avg Hourly Drain\",\n  COUNT(*)::int AS \"Events\"\nFROM gap_with_state\nGROUP BY 1\nORDER BY \"Avg Hourly Drain\" DESC",
           "refId": "A"
         }
       ],
       "options": {
-        "orientation": "vertical",
+        "orientation": "horizontal",
         "xField": "State",
-        "colorByField": "State",
-        "xTickLabelRotation": 0,
         "showValue": "always",
         "stacking": "none",
         "groupWidth": 0.7,
-        "barWidth": 0.8,
+        "barWidth": 0.85,
         "barRadius": 0,
         "fullHighlight": false,
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "show": false
@@ -1093,14 +1007,16 @@
         "defaults": {
           "unit": "velocitykmh",
           "min": 0,
+          "decimals": 3,
           "color": {
-            "mode": "palette-classic"
+            "mode": "fixed",
+            "fixedColor": "#E67E22"
           },
           "custom": {
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
-            "fillOpacity": 80,
+            "fillOpacity": 90,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -1108,7 +1024,7 @@
               "legend": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 0,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -1136,43 +1052,21 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "asleep"
+              "options": "Events"
             },
             "properties": [
               {
-                "id": "color",
-                "value": {
-                  "fixedColor": "blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "online"
-            },
-            "properties": [
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "offline"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "gray",
+                  "fixedColor": "#8F8F8F",
                   "mode": "fixed"
                 }
               }
@@ -1182,9 +1076,22 @@
       }
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 1
+      },
+      "id": 105,
+      "panels": [],
+      "title": "Park Duration Analysis",
+      "type": "row"
+    },
+    {
       "type": "barchart",
-      "title": "Drain vs Park Duration",
-      "description": "Average drain by parking duration range. Shows how drain increases with longer parking periods.",
+      "title": "Drain by Park Duration",
+      "description": "Average total range lost per parking duration. Event count in tooltip shows sample size per bucket.",
       "gridPos": {
         "x": 0,
         "y": 29,
@@ -1205,24 +1112,23 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  CASE\n    WHEN gap_hours < 1 THEN '<1 hour'\n    WHEN gap_hours < 3 THEN '1-3 hours'\n    WHEN gap_hours < 6 THEN '3-6 hours'\n    WHEN gap_hours < 12 THEN '6-12 hours'\n    WHEN gap_hours < 24 THEN '12-24 hours'\n    ELSE '>24 hours'\n  END AS \"Duration\",\n  ROUND(AVG(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Avg Drain\",\n  COUNT(*) AS \"Events\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT\n  CASE\n    WHEN gap_hours < 1 THEN '<1h'\n    WHEN gap_hours < 2 THEN '1-2h'\n    WHEN gap_hours < 4 THEN '2-4h'\n    WHEN gap_hours < 8 THEN '4-8h'\n    WHEN gap_hours < 12 THEN '8-12h'\n    WHEN gap_hours < 24 THEN '12-24h'\n    WHEN gap_hours < 48 THEN '1-2d'\n    ELSE '>2d'\n  END AS \"Duration\",\n  ROUND(AVG(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Avg Drain\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(SUM(gap_hours), 0))::numeric, 3) AS \"Hourly Rate\",\n  COUNT(*) AS \"Events\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY MIN(gap_hours)",
           "refId": "A"
         }
       ],
       "options": {
         "orientation": "vertical",
         "xField": "Duration",
-        "colorByField": "Duration",
         "xTickLabelRotation": 0,
-        "showValue": "always",
+        "showValue": "auto",
         "stacking": "none",
         "groupWidth": 0.7,
         "barWidth": 0.8,
         "barRadius": 0,
         "fullHighlight": false,
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         },
         "legend": {
           "show": false
@@ -1230,8 +1136,143 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "lengthkm",
           "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Events"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": false,
+                  "tooltip": false
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Hourly Rate"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": false,
+                  "tooltip": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Drain Rate by Park Duration",
+      "description": "Average hourly drain rate per parking duration. Higher rates suggest Sentry Mode, climate, or extreme weather.",
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 7
+      },
+      "id": 219,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH drive_gaps AS (\n  SELECT\n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT\n  CASE\n    WHEN gap_hours < 1 THEN '<1h'\n    WHEN gap_hours < 2 THEN '1-2h'\n    WHEN gap_hours < 4 THEN '2-4h'\n    WHEN gap_hours < 8 THEN '4-8h'\n    WHEN gap_hours < 12 THEN '8-12h'\n    WHEN gap_hours < 24 THEN '12-24h'\n    WHEN gap_hours < 48 THEN '1-2d'\n    ELSE '>2d'\n  END AS \"Duration\",\n  ROUND(AVG(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Avg Drain\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(SUM(gap_hours), 0))::numeric, 3) AS \"Hourly Rate\",\n  COUNT(*) AS \"Events\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY MIN(gap_hours)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "vertical",
+        "xField": "Duration",
+        "xTickLabelRotation": 0,
+        "showValue": "auto",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "min": 0,
+          "decimals": 3,
           "color": {
             "mode": "palette-classic"
           },
@@ -1275,33 +1316,58 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "x"
+              "options": "Events"
             },
             "properties": [
               {
-                "id": "unit",
-                "value": "h"
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": false,
+                  "tooltip": false
+                }
               },
               {
-                "id": "custom.axisPlacement",
-                "value": "bottom"
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "y"
+              "options": "Avg Drain"
             },
             "properties": [
               {
-                "id": "unit",
-                "value": "lengthkm"
+                "id": "custom.hideFrom",
+                "value": {
+                  "viz": true,
+                  "legend": false,
+                  "tooltip": false
+                }
               }
             ]
           }
         ]
       }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 1
+      },
+      "id": 106,
+      "panels": [],
+      "title": "Long Term",
+      "type": "row"
     },
     {
       "type": "timeseries",
@@ -1327,7 +1393,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\nmonthly AS (\n  SELECT \n    DATE_TRUNC('month', start_date) AS month,\n    SUM(GREATEST(end_range - next_start_range, 0)) AS total_loss\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL\n    AND end_range > next_start_range\n    AND gap_hours > 0.5\n    AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT \n  month AS time,\n  total_loss AS \"Monthly Loss\",\n  AVG(total_loss) OVER (ORDER BY month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS \"3-Month Avg\"\nFROM monthly\nORDER BY month",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n),\nmonthly AS (\n  SELECT \n    DATE_TRUNC('month', end_date) AS month,\n    SUM(GREATEST(end_range - next_start_range, 0)) AS total_loss\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL\n    AND end_range > next_start_range\n    AND gap_hours > 0.5\n    AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT \n  month AS time,\n  total_loss AS \"Monthly Loss\",\n  AVG(total_loss) OVER (ORDER BY month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS \"3-Month Avg\"\nFROM monthly\nORDER BY month",
           "refId": "A"
         }
       ],
@@ -1350,7 +1416,8 @@
           "unit": "lengthkm",
           "min": 0,
           "color": {
-            "mode": "palette-classic"
+            "mode": "fixed",
+            "fixedColor": "orange"
           },
           "custom": {
             "axisPlacement": "auto",
@@ -1417,90 +1484,6 @@
             ]
           }
         ]
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Sentry Mode Impact",
-      "description": "Estimated drain during Sentry Mode events (frequent online/offline cycles < 5 min)",
-      "gridPos": {
-        "x": 12,
-        "y": 29,
-        "w": 12,
-        "h": 7
-      },
-      "id": 218,
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "TeslaMate"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "TeslaMate"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH sentry_events AS (\n  SELECT \n    start_date,\n    end_date,\n    state,\n    LEAD(state) OVER (ORDER BY start_date) AS next_state,\n    EXTRACT(EPOCH FROM (end_date - start_date)) AS duration_sec\n  FROM states\n  WHERE car_id = $car_id\n    AND $__timeFilter(start_date)\n)\nSELECT \n  COUNT(*) AS \"Sentry Events\",\n  ROUND(SUM(duration_sec) / 3600::numeric, 1) AS \"Total Hours\"\nFROM sentry_events\nWHERE state = 'online' \n  AND next_state = 'offline'\n  AND duration_sec < 300",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Sentry Events"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total Hours"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "h"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "textMode": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
       }
     }
   ]

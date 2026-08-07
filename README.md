@@ -26,18 +26,18 @@ Each dashboard is a separate, focused view:
 
 | Panel | Type | Description |
 |-------|-----|-------------|
-| Avg Daily Range Loss | Stat | Average daily range loss in selected period |
-| Avg Hourly Range Loss | Stat | Average range lost per hour while parked |
+| Avg Daily Loss | Stat | Average daily range loss with green/yellow/red thresholds |
+| Avg Hourly Loss | Stat | Average range lost per hour while parked |
 | Total Range Lost | Stat | Cumulative range lost in selected period |
-| Est. Energy Lost (kWh) | Stat | Estimated energy lost using car efficiency factor |
-| Daily Phantom Drain | Time Series | Range lost between drives daily, with 7-day moving average |
-| Phantom Drain by Day of Week | Bar Chart | Average drain broken down by weekday |
-| Phantom Drain vs Outside Temperature | Bar Chart | Average hourly drain by outside temperature. Color-coded from blue (cold) to red (hot). Both extremes increase phantom drain |
+| Est. Energy Lost | Stat | Estimated energy lost in kWh using car efficiency factor |
+| Daily Phantom Drain | Time Series | Daily range lost (orange bars) with 7-day rolling average (blue dashed line) |
+| By Day of Week | Bar Chart | Average drain broken down by weekday |
+| Drain Rate by Temperature | Bar Chart | Average hourly drain by outside temperature bucket. Cold and hot extremes increase phantom drain |
 | Worst Drain Days | Table | Top 20 days with highest drain, hourly rate, and temperature |
-| Drain Rate by Vehicle State | Bar Chart | Average hourly drain rate when asleep vs online vs offline |
-| Drain vs Park Duration | Bar Chart | Average drain by parking duration range |
+| Drain Rate by Vehicle State | Bar Chart | Horizontal bars: hourly drain per parked state (asleep/online/offline) |
+| Drain by Park Duration | Bar Chart | Average total range lost by parking duration bucket |
+| Drain Rate by Park Duration | Bar Chart | Average hourly drain rate by parking duration bucket |
 | Monthly Drain Trend | Time Series | Monthly total with 3-month moving average |
-| Sentry Mode Impact | Stat | Estimated drain during Sentry Mode events |
 
 ### Battery Capacity & Degradation
 
