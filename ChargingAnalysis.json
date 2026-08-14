@@ -72,7 +72,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
           },
           "mappings": [],
           "thresholds": {
@@ -110,7 +111,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -133,10 +134,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND((SUM(charge_energy_added) / NULLIF(SUM(charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\n  AND charge_energy_used > 0",
+          "rawSql": "SELECT start_date AS time, ROUND((SUM(charge_energy_added) OVER (ORDER BY start_date) / NULLIF(SUM(charge_energy_used) OVER (ORDER BY start_date), 0) * 100)::numeric, 1) AS \"Efficiency [%]\" FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND charge_energy_used > 0 AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -178,7 +179,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "mappings": [],
           "thresholds": {
@@ -212,7 +214,7 @@
       "id": 402,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -235,10 +237,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND(AVG(end_battery_level - start_battery_level)::numeric, 0) AS \"Avg Depth [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND duration_min > 10",
+          "rawSql": "SELECT start_date AS time, ROUND(AVG(end_battery_level - start_battery_level) OVER (ORDER BY start_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::numeric, 0) AS \"Depth [%]\" FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND end_battery_level > start_battery_level AND duration_min > 10 AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -328,7 +330,7 @@
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": []
       },
@@ -864,7 +866,7 @@
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {
             "hideFrom": {
               "legend": false,
@@ -1202,7 +1204,7 @@
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -1325,7 +1327,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "none",
           "min": 0,
           "color": {
             "mode": "continuous-RdYlGr"
@@ -1403,9 +1405,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"AC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "rawSql": "SELECT cp.start_date AS time, ROUND((SUM(cp.charge_energy_added) OVER (ORDER BY cp.start_date) / NULLIF(SUM(cp.charge_energy_used) OVER (ORDER BY cp.start_date), 0) * 100)::numeric, 1) AS \"AC Efficiency [%]\" FROM charging_processes cp WHERE cp.car_id = $car_id AND cp.charge_energy_used > 0 AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY cp.start_date",
           "refId": "A"
         }
       ],
@@ -1422,16 +1424,24 @@
             ]
           },
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#2FC4B2"
           }
         },
         "overrides": []
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
-        "textMode": "auto"
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       }
     },
     {
@@ -1456,9 +1466,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"DC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "rawSql": "SELECT cp.start_date AS time, ROUND((SUM(cp.charge_energy_added) OVER (ORDER BY cp.start_date) / NULLIF(SUM(cp.charge_energy_used) OVER (ORDER BY cp.start_date), 0) * 100)::numeric, 1) AS \"DC Efficiency [%]\" FROM charging_processes cp WHERE cp.car_id = $car_id AND cp.charge_energy_used > 0 AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) AND $__timeFilter(cp.start_date) ORDER BY cp.start_date",
           "refId": "A"
         }
       ],
@@ -1475,16 +1485,24 @@
             ]
           },
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#F79520"
           }
         },
         "overrides": []
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
-        "textMode": "auto"
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       }
     },
     {
@@ -1642,7 +1660,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "none",
           "min": 0,
           "color": {
             "mode": "palette-classic"
@@ -1947,7 +1965,7 @@
               "mode": "off"
             }
           },
-          "unit": "kW"
+          "unit": "kwatt"
         },
         "overrides": [
           {
@@ -2094,7 +2112,7 @@
               "mode": "off"
             }
           },
-          "unit": "kW"
+          "unit": "kwatt"
         },
         "overrides": [
           {

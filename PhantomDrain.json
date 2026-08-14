@@ -182,7 +182,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#F79520"
           },
           "mappings": [],
           "thresholds": {
@@ -215,8 +216,8 @@
       },
       "id": 200,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
         "reduceOptions": {
@@ -235,9 +236,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND(AVG(loss)::numeric, 1) AS \"Avg Daily Loss ['$length_unit']\" FROM (SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168 GROUP BY 1) AS daily",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT d.start_date, d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.end_${preferred_range}_range_km AS end_range_km,\n    LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km\n  FROM drives d\n  WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ndaily AS (\n  SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT day AS time, ROUND(AVG(loss) OVER (ORDER BY day ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::numeric, 1) AS \"Avg Daily Loss ['$length_unit']\" FROM daily ORDER BY day",
           "refId": "A"
         }
       ],
@@ -253,7 +254,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#FFB357"
           },
           "mappings": [],
           "thresholds": {
@@ -286,8 +288,8 @@
       },
       "id": 201,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
         "reduceOptions": {
@@ -306,9 +308,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(SUM(gap_hours), 0))::numeric, 2) AS \"Avg Hourly Loss ['$length_unit'/h]\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT d.start_date, d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.end_${preferred_range}_range_km AS end_range_km,\n    LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km\n  FROM drives d\n  WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL\n),\nlosses AS (\n  SELECT end_date AS time, GREATEST(end_range - next_start_range, 0) AS loss, gap_hours\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168\n)\nSELECT time, ROUND((SUM(loss) OVER (ORDER BY time) / NULLIF(SUM(gap_hours) OVER (ORDER BY time), 0))::numeric, 2) AS \"Avg Hourly Loss ['$length_unit'/h]\" FROM losses ORDER BY time",
           "refId": "A"
         }
       ],
@@ -324,7 +326,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#E24D42"
           },
           "mappings": [],
           "thresholds": {
@@ -357,8 +360,8 @@
       },
       "id": 202,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
         "reduceOptions": {
@@ -377,9 +380,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 1) AS \"Total Lost ['$length_unit']\" FROM drive_gaps WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT d.start_date, d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.end_${preferred_range}_range_km AS end_range_km,\n    LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km\n  FROM drives d\n  WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ndaily AS (\n  SELECT end_date::date AS day, SUM(GREATEST(end_range - next_start_range, 0)) AS loss\n  FROM drive_gaps\n  WHERE next_start_range IS NOT NULL AND end_range > next_start_range AND gap_hours > 0.5 AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT day AS time, ROUND(SUM(loss) OVER (ORDER BY day)::numeric, 1) AS \"Total Lost ['$length_unit']\" FROM daily ORDER BY day",
           "refId": "A"
         }
       ],
@@ -395,7 +398,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#8E5AC8"
           },
           "mappings": [],
           "thresholds": {
@@ -415,7 +419,7 @@
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {}
         },
         "overrides": []
@@ -428,8 +432,8 @@
       },
       "id": 203,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto",
         "reduceOptions": {
@@ -448,9 +452,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (SELECT d.start_date, d.end_date, convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range, LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range, EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours, d.end_${preferred_range}_range_km AS end_range_km, LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date) AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL) SELECT ROUND((SUM(GREATEST(end_range_km - next_start_range_km, 0)) * $efficiency / 1000.0)::numeric, 1) AS \"Est. Energy Lost [kWh]\" FROM drive_gaps WHERE next_start_range_km IS NOT NULL AND end_range_km > next_start_range_km AND gap_hours > 0.5 AND gap_hours < 168",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT d.start_date, d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.end_${preferred_range}_range_km AS end_range_km,\n    LEAD(d.start_${preferred_range}_range_km) OVER (ORDER BY d.start_date) AS next_start_range_km\n  FROM drives d\n  WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL AND d.start_${preferred_range}_range_km IS NOT NULL AND d.end_${preferred_range}_range_km IS NOT NULL\n),\ndaily AS (\n  SELECT end_date::date AS day, SUM(GREATEST(end_range_km - next_start_range_km, 0)) AS loss_km\n  FROM drive_gaps\n  WHERE next_start_range_km IS NOT NULL AND end_range_km > next_start_range_km AND gap_hours > 0.5 AND gap_hours < 168\n  GROUP BY 1\n)\nSELECT day AS time, ROUND(SUM(loss_km * $efficiency / 1000.0) OVER (ORDER BY day)::numeric, 1) AS \"Energy Lost [kWh]\" FROM daily ORDER BY day",
           "refId": "A"
         }
       ],
