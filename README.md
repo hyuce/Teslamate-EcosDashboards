@@ -15,9 +15,9 @@ Each dashboard is a separate, focused view:
 | **Battery Capacity & Degradation** | 17 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range, capacity vs odometer |
 | **Charging Efficiency & Details** | 19 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions, charging power curve |
 | **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
-| **Drive Efficiency** | 12 | Consumption by speed/temperature, monthly distance/duration, elevation, usage analytics |
-| **Vehicle State** | 7 | Current status, online/offline/asleep time distribution, recent state transitions |
-| **Finance** | 11 | Charging cost, cost per kWh/km, total cost of ownership |
+| **Drive Efficiency** | 11 | Consumption by speed/temperature, monthly distance/duration, elevation, usage analytics |
+| **Vehicle State** | 6 | Current status, online/offline/asleep time distribution, recent state transitions |
+| **Finance** | 9 | Charging cost, cost per kWh/km, total cost of ownership |
 
 ---
 
@@ -111,6 +111,53 @@ Each dashboard is a separate, focused view:
 | Post-Charge Idle Time | Table | Time car stayed plugged in after full, color-coded |
 | Monthly Charging Stats | Table | Comprehensive monthly summary |
 | Charging Cost by Location | Table | Per-location cost using geofence unit price (TL/kWh) and recorded session cost |
+
+### Drive Efficiency
+
+![Drive Efficiency Dashboard](screenshots/Drive_Efficiency.png)
+
+| Panel | Type | Description |
+|-------|-----|-------------|
+| Total Distance | Stat | Total distance driven in period |
+| Total Drives | Stat | Total number of drives |
+| Avg Consumption | Stat | Weighted energy consumption (Wh/km) |
+| Total Duration | Stat | Total driving time |
+| Consumption by Speed | Bar Chart | Consumption (Wh/km) by peak speed |
+| Consumption by Temperature | Bar Chart | Consumption by outside temperature |
+| Monthly Distance | Time Series | Distance per month |
+| Monthly Duration | Time Series | Driving duration per month |
+| Drives by Day of Week | Bar Chart | Driving frequency by weekday |
+| Elevation (Ascent / Descent) | Bar Chart | Total elevation gain/loss |
+| Recent Drives | Table | Drive history with origin/destination, consumption |
+
+### Vehicle State
+
+![Vehicle State Dashboard](screenshots/Vehicle_State.png)
+
+| Panel | Type | Description |
+|-------|-----|-------------|
+| Current State | Stat | Latest vehicle state (online/offline/asleep) |
+| Rated Range | Stat | Latest rated range |
+| Battery Level | Stat | Latest battery level (SOC) |
+| Time by State | Pie | Hours spent in each state |
+| State Duration (hours) | Bar Chart | Duration per state |
+| Recent State Changes | Table | State transitions with durations |
+
+### Finance
+
+![Finance Dashboard](screenshots/Finance.png)
+
+| Panel | Type | Description |
+|-------|-----|-------------|
+| Total Charging Cost | Stat | Total charging cost in period |
+| Total Energy | Stat | Total energy charged |
+| Avg Cost per kWh | Stat | Weighted cost per kWh |
+| Total Distance | Stat | Total distance driven |
+| Charging Cost by Month | Bar Chart | Monthly charging cost |
+| Charging Cost by Location | Table | Cost per location with unit price |
+| Charging Cost per km | Stat | Charging cost per km |
+| Charging Cost per 100 km | Stat | Charging cost per 100 km |
+| TCO per km (incl. purchase) | Stat | Total cost of ownership per km |
 
 ---
 
