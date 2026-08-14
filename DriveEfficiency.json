@@ -109,7 +109,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "mappings": [],
           "thresholds": {
@@ -147,7 +148,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -170,10 +171,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(d.distance)::numeric, 0) AS \"Distance [km]\" FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND(SUM(distance) OVER (ORDER BY start_date)::numeric, 0) AS \"Distance [km]\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -214,7 +215,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#2FC4B2"
           },
           "mappings": [],
           "thresholds": {
@@ -238,7 +240,7 @@
               }
             ]
           },
-          "unit": "short",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -252,7 +254,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -275,10 +277,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(*) AS \"Drives\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, COUNT(*) OVER (ORDER BY start_date) AS \"Drives\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -319,7 +321,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#F79520"
           },
           "mappings": [],
           "thresholds": {
@@ -357,7 +360,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -380,10 +383,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND((SUM((d.start_rated_range_km - d.end_rated_range_km) * cars.efficiency) * 1000.0 / NULLIF(SUM(d.distance), 0))::numeric, 0) AS \"Consumption [Wh/km]\" FROM drives d CROSS JOIN cars WHERE d.car_id = $car_id AND cars.id = $car_id AND d.distance > 1 AND (d.start_rated_range_km - d.end_rated_range_km) > 0 AND $__timeFilter(d.start_date)",
+          "rawSql": "SELECT d.start_date AS time, ROUND((SUM(d.start_rated_range_km - d.end_rated_range_km) OVER (ORDER BY d.start_date) * cars.efficiency * 1000.0 / NULLIF(SUM(d.distance) OVER (ORDER BY d.start_date), 0))::numeric, 0) AS \"Consumption [Wh/km]\" FROM drives d CROSS JOIN cars WHERE d.car_id = $car_id AND cars.id = $car_id AND d.distance > 1 AND (d.start_rated_range_km - d.end_rated_range_km) > 0 AND $__timeFilter(d.start_date) ORDER BY d.start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -424,7 +427,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#8E5AC8"
           },
           "mappings": [],
           "thresholds": {
@@ -462,7 +466,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -485,10 +489,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND((SUM(d.duration_min) / 60.0)::numeric, 0) AS \"Duration [h]\" FROM drives d WHERE d.car_id = $car_id AND $__timeFilter(d.start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND((SUM(duration_min) OVER (ORDER BY start_date) / 60.0)::numeric, 0) AS \"Duration [h]\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1008,7 +1012,7 @@
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "m"
         },
         "overrides": []
       },
@@ -1115,7 +1119,7 @@
               "mode": "off"
             }
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": [
           {

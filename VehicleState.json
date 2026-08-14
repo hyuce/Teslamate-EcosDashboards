@@ -133,7 +133,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -214,7 +214,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
           },
           "mappings": [],
           "thresholds": {
@@ -252,7 +253,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -275,10 +276,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(c.rated_battery_range_km::numeric, 0) AS \"Rated Range [km]\" FROM charges c JOIN charging_processes cp ON cp.id = c.charging_process_id WHERE cp.car_id = $car_id ORDER BY c.date DESC LIMIT 1",
+          "rawSql": "SELECT c.date AS time, ROUND(c.rated_battery_range_km::numeric, 0) AS \"Rated Range [km]\" FROM charges c INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges GROUP BY charging_process_id) lc ON c.charging_process_id = lc.charging_process_id AND c.date = lc.date INNER JOIN charging_processes cp ON cp.id = c.charging_process_id WHERE cp.car_id = $car_id AND c.rated_battery_range_km IS NOT NULL ORDER BY c.date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -319,7 +320,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "mappings": [],
           "thresholds": {
@@ -357,7 +359,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -380,10 +382,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT c.battery_level AS \"Battery [%]\" FROM charges c JOIN charging_processes cp ON cp.id = c.charging_process_id WHERE cp.car_id = $car_id ORDER BY c.date DESC LIMIT 1",
+          "rawSql": "SELECT c.date AS time, c.battery_level AS \"Battery [%]\" FROM charges c INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges GROUP BY charging_process_id) lc ON c.charging_process_id = lc.charging_process_id AND c.date = lc.date INNER JOIN charging_processes cp ON cp.id = c.charging_process_id WHERE cp.car_id = $car_id AND c.battery_level IS NOT NULL ORDER BY c.date",
           "refId": "A",
           "sql": {
             "columns": [

@@ -122,7 +122,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#E24D42"
           },
           "mappings": [],
           "thresholds": {
@@ -146,7 +147,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "currencyTRY",
           "custom": {}
         },
         "overrides": []
@@ -160,7 +161,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -183,10 +184,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(cost)::numeric, 2) AS \"Cost [TL]\" FROM charging_processes WHERE car_id = $car_id AND cost IS NOT NULL AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND(SUM(cost) OVER (ORDER BY start_date)::numeric, 2) AS \"Cost [TL]\" FROM charging_processes WHERE car_id = $car_id AND cost IS NOT NULL AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -227,7 +228,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "mappings": [],
           "thresholds": {
@@ -251,7 +253,7 @@
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {}
         },
         "overrides": []
@@ -265,7 +267,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -288,10 +290,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(charge_energy_added)::numeric, 1) AS \"Energy [kWh]\" FROM charging_processes WHERE car_id = $car_id AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND(SUM(charge_energy_added) OVER (ORDER BY start_date)::numeric, 1) AS \"Energy [kWh]\" FROM charging_processes WHERE car_id = $car_id AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -332,7 +334,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#F79520"
           },
           "mappings": [],
           "thresholds": {
@@ -356,7 +359,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -370,7 +373,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -393,10 +396,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND((SUM(cost) / NULLIF(SUM(charge_energy_added), 0))::numeric, 2) AS \"Cost/kWh [TL]\" FROM charging_processes WHERE car_id = $car_id AND cost IS NOT NULL AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND((SUM(cost) OVER (ORDER BY start_date) / NULLIF(SUM(charge_energy_added) OVER (ORDER BY start_date), 0))::numeric, 2) AS \"Cost/kWh [TL]\" FROM charging_processes WHERE car_id = $car_id AND cost IS NOT NULL AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -437,7 +440,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#2FC4B2"
           },
           "mappings": [],
           "thresholds": {
@@ -475,7 +479,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -498,10 +502,10 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(distance)::numeric, 0) AS \"Distance [km]\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, ROUND(SUM(distance) OVER (ORDER BY start_date)::numeric, 0) AS \"Distance [km]\" FROM drives WHERE car_id = $car_id AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -904,7 +908,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -1009,7 +1013,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
@@ -1114,7 +1118,7 @@
               }
             ]
           },
-          "unit": "percent",
+          "unit": "none",
           "custom": {}
         },
         "overrides": []
