@@ -69,6 +69,23 @@
         "type": "query"
       },
       {
+        "current": {},
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "definition": "SELECT base_url FROM settings LIMIT 1",
+        "hide": 2,
+        "includeAll": false,
+        "name": "base_url",
+        "options": [],
+        "query": "SELECT base_url FROM settings LIMIT 1",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
         "current": {
           "text": "0",
           "value": "0"

@@ -5,16 +5,16 @@
 
 > **Why "Ecos"?** Ecos is the name of the author's Tesla vehicle. These dashboards were built and tested on that car — hence the repository and folder name *Teslamate-EcosDashboards*.
 
-A collection of custom **Grafana** dashboards for TeslaMate that provide analyses not available in any existing dashboard — **phantom drain**, **battery capacity estimation**, and **charging habits** insights.
+A collection of custom **Grafana** dashboards for TeslaMate that provide analyses not available in any existing dashboard — **phantom drain**, **battery capacity & degradation**, **charging efficiency & habits**, **drive efficiency**, **vehicle state**, and **finance** insights.
 
 Each dashboard is a separate, focused view:
 
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
 | **Phantom Drain** | 12 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state analysis, seasonal trend |
-| **Battery Capacity & Degradation** | 17 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range, capacity vs odometer |
+| **Battery Capacity & Degradation** | 20 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range, capacity vs odometer, firmware analysis |
 | **Charging Efficiency & Details** | 19 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions, charging power curve |
-| **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
+| **Charging Habits** | 14 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 | **Drive Efficiency** | 11 | Consumption by speed/temperature, monthly distance/duration, elevation, usage analytics |
 | **Vehicle State** | 6 | Current status, online/offline/asleep time distribution, recent state transitions |
 | **Finance** | 9 | Charging cost, cost per kWh/km, total cost of ownership |
@@ -48,7 +48,7 @@ Each dashboard is a separate, focused view:
 
 | Panel | Type | Description |
 |-------|-----|-------------|
-| Battery Health | Stat | Current capacity as a percentage of the reference capacity (auto-detected max or manual override) |
+| Battery Health | Gauge | Current capacity as a percentage of the reference capacity (auto-detected max or manual override) |
 | Capacity Over Time | Time Series | Per-session capacity estimate with linear trend line, colored by season |
 | Reference Capacity | Stat | Maximum capacity ever estimated from all historical charge sessions (or manual override) |
 | Current Capacity | Stat | Average capacity from the most recent 50 qualifying charge sessions |
@@ -65,6 +65,9 @@ Each dashboard is a separate, focused view:
 | Capacity vs Outside Temperature | Time Series | Capacity estimate over time with outside temperature overlay |
 | Capacity: DC Fast vs AC | Time Series | Capacity estimate comparison between DC fast and AC charging |
 | Capacity vs Odometer | Bar Chart | Average estimated capacity per 500 km odometer band (degradation vs mileage) |
+| Max Rated Range | Stat | Highest rated range ever recorded (full-charge benchmark) |
+| Capacity by Firmware Version | Table | Average capacity per firmware version |
+| Firmware Update History | Table | OTA firmware update history |
 
 ### Charging Efficiency & Details
 
@@ -104,13 +107,14 @@ Each dashboard is a separate, focused view:
 | Day / Hour Heatmap | Heatmap | Traditional heatmap: X=hours (0-23), Y=days (Mon-Sun), color=charging frequency. Spectral color scheme |
 | Monthly Avg Charge Duration | Bar Chart | Average session duration per month |
 | Number of Charges per Month | Bar Chart | Charging frequency over time |
-| Charging Cost per Month | Bar Chart | Monthly cost and energy used |
+| Charging Cost per Month | Bar Chart | Monthly charging cost |
 | AC vs DC Energy Trend | Time Series | Charging energy over time, AC vs DC stacked |
 | AC vs DC Charging Breakdown | Donut | Session count by charger type |
 | Top 15 Charging Locations | Table | Top 15 locations with session stats |
 | Post-Charge Idle Time | Table | Time car stayed plugged in after full, color-coded |
 | Monthly Charging Stats | Table | Comprehensive monthly summary |
 | Charging Cost by Location | Table | Per-location cost using geofence unit price (TL/kWh) and recorded session cost |
+| Free / Home Energy | Stat | Energy charged at locations without configured cost (typically home) |
 
 ### Drive Efficiency
 
@@ -225,6 +229,7 @@ Then add the volume mounts as described in Method 1.
 | `preferred_range` | Phantom Drain | Hidden | Preferred range type from TeslaMate settings (rated/ideal) |
 | `efficiency` | Phantom Drain | Hidden Query | Car efficiency factor in Wh/km (converted from `cars.efficiency` kWh/km) |
 | `nominal_capacity` | Battery Capacity | Textbox | Optional factory battery capacity in kWh. When `0`, the dashboard uses auto-detected MaxCapacity |
+| `purchase_price` | Finance | Textbox | Optional vehicle purchase price in TL (`0` = charging cost only) |
 
 > **Note:** Temperature values are displayed in **°C** (TeslaMate stores outside temperature in Celsius). The Battery Capacity dashboard estimates capacity using `rated_battery_range_km` (not the `preferred_range` setting), matching the official TeslaMate battery health methodology.
 
@@ -236,14 +241,15 @@ Then add the volume mounts as described in Method 1.
 
 | Table | Dashboard(s) | Purpose |
 |-------|-------------|---------|
-| `drives` | Phantom Drain | Trip start/end range for drain calculation |
-| `charging_processes` | Battery, Charging | Charge session data (energy, SOC, duration, cost) |
-| `charges` | Battery, Charging | Per-minute charge data (fast charger detection) |
-| `states` | Phantom Drain | Vehicle online/offline/asleep state timeline |
-| `cars` | Phantom Drain, Battery | Vehicle efficiency factor |
-| `settings` | All | Unit preferences |
-| `geofences` | Battery, Charging | Named charging locations |
-| `addresses` | Battery, Charging | Geocoded addresses |
+| `drives` | Phantom Drain, Drive Efficiency, Finance | Trip start/end range, distance, duration, elevation |
+| `charging_processes` | Battery, Charging, Finance | Charge session data (energy, SOC, duration, cost) |
+| `charges` | Battery, Charging | Per-minute charge data (power, fast charger, battery level) |
+| `states` | Phantom Drain, Vehicle State | Vehicle online/offline/asleep state timeline |
+| `cars` | Phantom Drain, Battery, Drive Efficiency | Vehicle efficiency factor |
+| `settings` | All | Unit preferences, base URL |
+| `geofences` | Battery, Charging, Finance | Named charging locations and unit price |
+| `addresses` | Battery, Charging, Finance | Geocoded addresses |
+| `updates` | Battery | OTA firmware update history |
 
 ---
 
@@ -333,7 +339,7 @@ Time between `charging_processes.end_date` and the start of the next drive for t
 - **Battery capacity estimates** are most accurate with deep charges (e.g., 10% → 80%). Shallow charges produce noisier estimates.
 - **Post-charge idle time** depends on `charges` table having accurate final timestamps.
 - **AC/DC detection** relies on `fast_charger_present` in the `charges` table, which may not cover all charger types.
-- The dashboards use `rated` or `ideal` range based on your TeslaMate `preferred_range` setting.
+- Only **Phantom Drain** uses `rated` or `ideal` range based on the `preferred_range` setting; the **Battery Capacity** dashboard always uses `rated` range (matching the official TeslaMate methodology).
 
 ---
 
