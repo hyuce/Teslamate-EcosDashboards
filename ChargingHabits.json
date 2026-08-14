@@ -97,7 +97,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "green",
+                  "fixedColor": "#73BF69",
                   "mode": "fixed"
                 }
               }
@@ -112,7 +112,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#f59e0b",
+                  "fixedColor": "#F79520",
                   "mode": "fixed"
                 }
               }
@@ -127,7 +127,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#3b82f6",
+                  "fixedColor": "#5794f2",
                   "mode": "fixed"
                 }
               }
@@ -146,7 +146,6 @@
         "pieType": "donut",
         "displayLabels": [
           "name",
-          "value",
           "percent"
         ],
         "legend": {
@@ -181,7 +180,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  CASE\n    WHEN start_battery_level <= 20 AND end_battery_level >= 80 THEN 'Deep Charge'\n    WHEN start_battery_level >= 50 AND (end_battery_level - start_battery_level) <= 20 THEN 'Top-up'\n    ELSE 'Normal'\n  END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND start_battery_level IS NOT NULL\n  AND end_battery_level IS NOT NULL\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  CASE\n    WHEN start_battery_level <= 20 AND end_battery_level >= 80 THEN 'Deep Charge'\n    WHEN start_battery_level >= 50 AND (end_battery_level - start_battery_level) <= 20 THEN 'Top-up'\n    ELSE 'Normal'\n  END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND start_battery_level IS NOT NULL\n  AND end_battery_level IS NOT NULL\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 2 DESC",
           "refId": "A"
         }
       ],
