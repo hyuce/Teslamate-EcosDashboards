@@ -55,10 +55,10 @@
     {
       "id": 600,
       "gridPos": {
-        "x": 0,
-        "y": 0,
+        "h": 1,
         "w": 24,
-        "h": 1
+        "x": 0,
+        "y": 0
       },
       "type": "row",
       "title": "Battery Health",
@@ -113,10 +113,10 @@
         "overrides": []
       },
       "gridPos": {
+        "h": 8,
+        "w": 6,
         "x": 0,
-        "y": 1,
-        "w": 9,
-        "h": 8
+        "y": 1
       },
       "options": {
         "orientation": "horizontal",
@@ -264,10 +264,10 @@
         ]
       },
       "gridPos": {
-        "x": 0,
-        "y": 10,
-        "w": 24,
-        "h": 7
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 1
       },
       "options": {
         "legend": {
@@ -336,10 +336,10 @@
     {
       "id": 601,
       "gridPos": {
-        "x": 0,
-        "y": 9,
+        "h": 1,
         "w": 24,
-        "h": 1
+        "x": 0,
+        "y": 9
       },
       "type": "row",
       "title": "Capacity Metrics",
@@ -373,10 +373,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 9,
-        "y": 1,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 10
       },
       "options": {
         "textMode": "value_and_name",
@@ -428,10 +428,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 9,
-        "y": 4,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 10
       },
       "options": {
         "textMode": "value_and_name",
@@ -495,10 +495,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 9,
-        "y": 7,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 10
       },
       "options": {
         "textMode": "value_and_name",
@@ -558,10 +558,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 14,
-        "y": 1,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 10
       },
       "options": {
         "textMode": "value_and_name",
@@ -613,10 +613,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 14,
-        "y": 4,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 14
       },
       "options": {
         "textMode": "value_and_name",
@@ -668,10 +668,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 14,
-        "y": 7,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 14
       },
       "options": {
         "textMode": "value_and_name",
@@ -731,10 +731,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 19,
-        "y": 1,
-        "w": 5,
-        "h": 3
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 14
       },
       "options": {
         "textMode": "value_and_name",
@@ -764,7 +764,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "type": "row",
       "title": "Advanced Insights",
@@ -798,10 +798,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 0,
-        "y": 18,
+        "h": 4,
         "w": 6,
-        "h": 3
+        "x": 0,
+        "y": 19
       },
       "options": {
         "textMode": "value_and_name",
@@ -853,10 +853,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 6,
-        "y": 18,
+        "h": 4,
         "w": 6,
-        "h": 3
+        "x": 6,
+        "y": 19
       },
       "options": {
         "textMode": "value_and_name",
@@ -908,10 +908,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 12,
-        "y": 18,
+        "h": 4,
         "w": 6,
-        "h": 3
+        "x": 12,
+        "y": 19
       },
       "options": {
         "textMode": "value_and_name",
@@ -963,10 +963,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 18,
-        "y": 18,
+        "h": 4,
         "w": 6,
-        "h": 3
+        "x": 18,
+        "y": 19
       },
       "options": {
         "textMode": "value_and_name",
@@ -1115,7 +1115,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 24
       },
       "id": 50,
       "options": {
@@ -1167,7 +1167,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 31
       },
       "type": "row",
       "title": "Temperature & Charger Type Analysis",
@@ -1358,7 +1358,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 32
       },
       "id": null,
       "options": {
@@ -1606,7 +1606,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 32
       },
       "id": null,
       "options": {
@@ -1681,7 +1681,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 39
       },
       "id": 701,
       "collapsed": false
@@ -1737,10 +1737,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 0,
-        "y": 44,
+        "h": 7,
         "w": 24,
-        "h": 8
+        "x": 0,
+        "y": 40
       },
       "id": 702,
       "options": {
@@ -1809,7 +1809,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 47
       },
       "id": 703,
       "collapsed": false
@@ -1859,10 +1859,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 0,
-        "y": 53,
+        "h": 8,
         "w": 12,
-        "h": 8
+        "x": 0,
+        "y": 48
       },
       "id": 704,
       "options": {
@@ -1964,10 +1964,10 @@
         "overrides": []
       },
       "gridPos": {
-        "x": 12,
-        "y": 53,
+        "h": 8,
         "w": 12,
-        "h": 8
+        "x": 12,
+        "y": 48
       },
       "id": 704,
       "options": {
@@ -2023,6 +2023,18 @@
       "title": "Firmware Update History",
       "type": "table",
       "description": "OTA firmware update history from the updates table."
+    },
+    {
+      "type": "row",
+      "title": "Long-Term Trend",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 705,
+      "collapsed": false
     }
   ],
   "preload": false,
