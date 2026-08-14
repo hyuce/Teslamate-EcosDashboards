@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0] - 2026-08-14
 
+### Removed
+- **Data Quality** dashboard (incomplete-data checks were empty; low value for this single-car setup).
+
 ### Added
 - **Drive Efficiency** (new dashboard): consumption by speed and temperature, monthly distance/duration, drives by day-of-week, elevation.
 - **Vehicle State** (new dashboard): current status, online/offline/asleep time distribution, recent state transitions.

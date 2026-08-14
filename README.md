@@ -17,7 +17,6 @@ Each dashboard is a separate, focused view:
 | **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 | **Drive Efficiency** | 12 | Consumption by speed/temperature, monthly distance/duration, elevation, usage analytics |
 | **Vehicle State** | 7 | Current status, online/offline/asleep time distribution, recent state transitions |
-| **Data Quality** | 4 | Data integrity checks — incomplete drives/charges and missing fields |
 | **Finance** | 11 | Charging cost, cost per kWh/km, total cost of ownership |
 
 ---
@@ -146,7 +145,6 @@ The dashboards will appear in Grafana under the **"Teslamate Ecos"** folder with
 - **Charging Habits:** `http://<host>:3000/d/ecos-ch-01/charging-habits`
 - **Drive Efficiency:** `http://<host>:3000/d/ecos-de-01/drive-efficiency`
 - **Vehicle State:** `http://<host>:3000/d/ecos-vs-01/vehicle-state`
-- **Data Quality:** `http://<host>:3000/d/ecos-dq-01/data-quality`
 - **Finance:** `http://<host>:3000/d/ecos-fin-01/finance`
 
 They will also appear in the **"Ecos Dashboards"** dropdown in the top navigation.
@@ -302,7 +300,6 @@ Teslamate-EcosDashboards/
 ├── PhantomDrain.json            # Phantom drain analysis dashboard
 ├── DriveEfficiency.json         # Driving efficiency & usage analytics
 ├── VehicleState.json            # Vehicle online/offline/asleep state analysis
-├── DataQuality.json             # Data integrity checks
 ├── Finance.json                 # Charging cost & total cost of ownership
 ├── provisioning.yml             # Grafana provisioning config
 ├── README.md                    # This file
