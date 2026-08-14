@@ -13,8 +13,8 @@ Each dashboard is a separate, focused view:
 |-----------|--------|---------|
 | **Phantom Drain** | 12 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state analysis, seasonal trend |
 | **Battery Capacity & Degradation** | 16 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
-| **Charging Efficiency & Details** | 16 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions |
-| **Charging Habits** | 12 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
+| **Charging Efficiency & Details** | 19 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions, charging power curve |
+| **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 
 ---
 
@@ -84,6 +84,9 @@ Each dashboard is a separate, focused view:
 | Top/Bottom 10 Sessions | Table | Most and least efficient charging sessions with details |
 | Daily Energy Added (AC vs DC) | Time Series | Daily energy added stacked by charger type |
 | Recent 20 Charge Sessions | Table | Full details: date, location, capacity, efficiency, SOC, type |
+| Charging Power Curve (by SOC) | Bar Chart | Average charging power (kW) per 5% state-of-charge bucket |
+| Charging Power by Temperature | Bar Chart | Average charging power by outside temperature (cold-weather behaviour) |
+| DC Fast Charger Comparison | Table | DC fast charging by charger brand/operator: peak & average power, energy, duration |
 
 ### Charging Habits
 
@@ -103,6 +106,7 @@ Each dashboard is a separate, focused view:
 | Top 15 Charging Locations | Table | Top 15 locations with session stats |
 | Post-Charge Idle Time | Table | Time car stayed plugged in after full, color-coded |
 | Monthly Charging Stats | Table | Comprehensive monthly summary |
+| Charging Cost by Location | Table | Per-location cost using geofence unit price (TL/kWh) and recorded session cost |
 
 ---
 

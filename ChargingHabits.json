@@ -1884,6 +1884,303 @@
           "rawSql": "WITH monthly AS (\n  SELECT\n    DATE_TRUNC('month', cp.end_date)::date AS month,\n    CASE WHEN EXISTS (\n      SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1\n    ) THEN 'DC' ELSE 'AC' END AS charge_type,\n    cp.charge_energy_added\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_added > 0\n)\nSELECT\n  month AS \"time\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'AC') AS \"AC\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'DC') AS \"DC\"\nFROM monthly\nGROUP BY month\nORDER BY month"
         }
       ]
+    },
+    {
+      "type": "row",
+      "title": "Charging Cost",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "id": 501,
+      "collapsed": false
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Energy [kWh]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Energy Added [kWh]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Energy Used [kWh]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Energy [kWh]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kWh"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Efficiency [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Efficiency [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration [min]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Duration [min]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Idle Time [min]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Start SOC [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg End SOC [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Depth [%]"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sessions"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Charges"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Cost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 9
+      },
+      "id": 502,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Sessions"
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT\n  COALESCE(g.name, a.name, 'Unknown') AS \"Location\",\n  COUNT(*) AS \"Sessions\",\n  ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"Energy [kWh]\",\n  ROUND(AVG(g.cost_per_unit)::numeric, 2) AS \"Unit Price [TL/kWh]\",\n  ROUND(SUM(cp.cost)::numeric, 2) AS \"Total Cost [TL]\"\nFROM charging_processes cp\nLEFT JOIN geofences g ON cp.geofence_id = g.id\nLEFT JOIN addresses a ON cp.address_id = a.id\nWHERE cp.car_id = $car_id\n  AND cp.charge_energy_added > 0\n  AND $__timeFilter(cp.start_date)\nGROUP BY 1\nORDER BY SUM(cp.charge_energy_added) DESC\nLIMIT 15",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Charging Cost by Location",
+      "type": "table",
+      "description": "Charging cost by location using geofence unit price (TL/kWh) and recorded session cost."
     }
   ],
   "preload": false,
