@@ -12,7 +12,7 @@ Each dashboard is a separate, focused view:
 | Dashboard | Panels | Purpose |
 |-----------|--------|---------|
 | **Phantom Drain** | 12 | Range and energy lost while parked, patterns by day-of-week and temperature, worst days, vehicle state analysis, seasonal trend |
-| **Battery Capacity & Degradation** | 16 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range |
+| **Battery Capacity & Degradation** | 17 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range, capacity vs odometer |
 | **Charging Efficiency & Details** | 19 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions, charging power curve |
 | **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
 
@@ -61,6 +61,7 @@ Each dashboard is a separate, focused view:
 | Monthly Capacity Overview | Time Series | Monthly average capacity with trend line |
 | Capacity vs Outside Temperature | Time Series | Capacity estimate over time with outside temperature overlay |
 | Capacity: DC Fast vs AC | Time Series | Capacity estimate comparison between DC fast and AC charging |
+| Capacity vs Odometer | Bar Chart | Average estimated capacity per 500 km odometer band (degradation vs mileage) |
 
 ### Charging Efficiency & Details
 
