@@ -16,3 +16,6 @@ Thumbs.db
 docs/
 .superpowers/
 ROADMAP.md
+
+# package-lock (empty artifact; not a real node project)
+package-lock.json
