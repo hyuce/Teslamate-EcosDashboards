@@ -78,7 +78,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Current estimated capacity as a percentage of the reference capacity (average of the earliest 10 deep charge sessions in the selected period).",
+      "description": "Estimated capacity as a percentage of the reference (current 50-session average / max historical capacity).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -89,25 +89,24 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "#F79520",
                 "value": 70
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": 85
               },
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": 95
               }
             ]
           },
           "unit": "percent",
-          "custom": {},
           "min": 0,
           "max": 100
         },
@@ -120,11 +119,9 @@
         "h": 8
       },
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
+        "orientation": "horizontal",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -132,9 +129,9 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "value_and_name",
-        "wideLayout": true
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "sizing": "auto"
       },
       "targets": [
         {
@@ -151,7 +148,7 @@
         }
       ],
       "title": "Battery Health",
-      "type": "stat",
+      "type": "gauge",
       "id": 700,
       "links": [
         {
@@ -210,72 +207,14 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "30-Day Average [kWh]"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    10,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 3
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Nominal [kWh]"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    5,
-                    5
-                  ],
-                  "fill": "dash"
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byName",
@@ -422,12 +361,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -477,12 +416,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -532,24 +471,24 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": 0
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": 5
               },
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": 10
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -588,7 +527,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Estimated capacity loss per year based on linear regression of all qualifying sessions.",
+      "description": "Estimated capacity loss per year (kWh/yr) from linear regression over qualifying sessions.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -599,20 +538,20 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": null
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": -3
               },
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": -1
               }
             ]
           },
-          "unit": "kWh/yr",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -662,12 +601,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -717,12 +656,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "short",
+          "unit": "none",
           "custom": {},
           "decimals": 0
         },
@@ -772,20 +711,20 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": 3
               },
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": 5
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -847,7 +786,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
@@ -902,12 +841,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "short",
+          "unit": "none",
           "custom": {},
           "decimals": 0
         },
@@ -957,12 +896,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {},
           "decimals": 2
         },
@@ -1012,7 +951,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "#5794f2",
                 "value": null
               }
             ]
@@ -1100,12 +1039,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -1283,12 +1222,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -1323,7 +1262,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "orange",
+                  "fixedColor": "#F79520",
                   "mode": "fixed"
                 }
               },
@@ -1525,12 +1464,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               }
             ]
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -1762,7 +1701,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               }
             ]
@@ -1793,40 +1732,9 @@
               "mode": "off"
             }
           },
-          "unit": "kWh"
+          "unit": "kwatth"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Deep (>30pp)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Shallow (≤30pp)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "x": 0,
@@ -1930,88 +1838,25 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": 65
               },
               {
-                "color": "orange",
+                "color": "#F79520",
                 "value": 60
               },
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": 55
               }
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Est. Capacity [kWh]"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "gradient"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Energy Added [kWh]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "kWh"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Efficiency [%]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Duration [min]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "m"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "SOC"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "x": 0,
@@ -2098,88 +1943,25 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "yellow",
+                "color": "#FFB357",
                 "value": 65
               },
               {
-                "color": "orange",
+                "color": "#F79520",
                 "value": 60
               },
               {
-                "color": "red",
+                "color": "#E24D42",
                 "value": 55
               }
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Est. Capacity [kWh]"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "gradient"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Energy Added [kWh]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "kWh"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Efficiency [%]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Duration [min]"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "m"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "SOC"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "x": 12,
