@@ -2181,6 +2181,63 @@
       "title": "Charging Cost by Location",
       "type": "table",
       "description": "Charging cost by location using geofence unit price (TL/kWh) and recorded session cost."
+    },
+    {
+      "id": 503,
+      "type": "stat",
+      "title": "Free / Home Energy",
+      "description": "Energy added at locations without a configured cost (typically home charging).",
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds",
+            "fixedColor": "#3b82f6"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#808080",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kWh",
+          "custom": {
+            "graphMode": "area"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(SUM(charge_energy_added)::numeric, 1) AS \"Free Energy [kWh]\"\nFROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND cost IS NULL AND $__timeFilter(start_date)"
+        }
+      ],
+      "transformations": []
     }
   ],
   "preload": false,

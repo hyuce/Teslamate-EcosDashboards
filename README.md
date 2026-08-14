@@ -15,6 +15,10 @@ Each dashboard is a separate, focused view:
 | **Battery Capacity & Degradation** | 17 | Real kWh capacity estimation, degradation tracking, temperature/charger-type impact, projected range, capacity vs odometer |
 | **Charging Efficiency & Details** | 19 | Charging efficiency, AC vs DC breakdowns, deep vs shallow charging, efficiency vs temperature, monthly stats, duration/SOC analysis, top/bottom sessions, charging power curve |
 | **Charging Habits** | 13 | Charging Pattern donut, Day/Hour heatmap, AC/DC energy trend, cost analysis, idle time, location breakdown |
+| **Drive Efficiency** | 12 | Consumption by speed/temperature, monthly distance/duration, elevation, usage analytics |
+| **Vehicle State** | 7 | Current status, online/offline/asleep time distribution, recent state transitions |
+| **Data Quality** | 4 | Data integrity checks — incomplete drives/charges and missing fields |
+| **Finance** | 11 | Charging cost, cost per kWh/km, total cost of ownership |
 
 ---
 
@@ -140,6 +144,10 @@ The dashboards will appear in Grafana under the **"Teslamate Ecos"** folder with
 - **Battery Capacity & Degradation:** `http://<host>:3000/d/ecos-bch-01/battery-capacity-and-health`
 - **Charging Efficiency & Details:** `http://<host>:3000/d/ecos-ced-01/charging-efficiency-and-details`
 - **Charging Habits:** `http://<host>:3000/d/ecos-ch-01/charging-habits`
+- **Drive Efficiency:** `http://<host>:3000/d/ecos-de-01/drive-efficiency`
+- **Vehicle State:** `http://<host>:3000/d/ecos-vs-01/vehicle-state`
+- **Data Quality:** `http://<host>:3000/d/ecos-dq-01/data-quality`
+- **Finance:** `http://<host>:3000/d/ecos-fin-01/finance`
 
 They will also appear in the **"Ecos Dashboards"** dropdown in the top navigation.
 
@@ -292,8 +300,13 @@ Teslamate-EcosDashboards/
 ├── ChargingAnalysis.json        # Charging efficiency & details dashboard
 ├── ChargingHabits.json          # Charging habits analysis dashboard
 ├── PhantomDrain.json            # Phantom drain analysis dashboard
+├── DriveEfficiency.json         # Driving efficiency & usage analytics
+├── VehicleState.json            # Vehicle online/offline/asleep state analysis
+├── DataQuality.json             # Data integrity checks
+├── Finance.json                 # Charging cost & total cost of ownership
 ├── provisioning.yml             # Grafana provisioning config
 ├── README.md                    # This file
+├── CHANGELOG.md                 # Release history
 ├── LICENSE                      # GPLv3 license
 ├── .gitignore
 └── screenshots/                 # Dashboard preview images
