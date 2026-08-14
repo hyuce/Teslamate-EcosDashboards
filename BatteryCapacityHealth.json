@@ -1734,6 +1734,165 @@
       ],
       "title": "Capacity: DC Fast vs AC",
       "type": "timeseries"
+    },
+    {
+      "type": "row",
+      "title": "Range & Odometer",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 701,
+      "collapsed": false
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "kWh"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Deep (>30pp)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Shallow (≤30pp)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 24,
+        "h": 8
+      },
+      "id": 702,
+      "options": {
+        "orientation": "horizontal",
+        "xField": "Type",
+        "colorByField": "Type",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "showVal": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nsession_cap AS (\n  SELECT cp.end_date AS t,\n    c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS cap_kwh,\n    (SELECT MAX(d.end_km) FROM drives d WHERE d.car_id = cp.car_id AND d.end_date <= cp.end_date) AS odo_km\n  FROM charging_processes cp\n  INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges WHERE usable_battery_level > 0 GROUP BY charging_process_id) lc\n    ON cp.id = lc.charging_process_id\n  INNER JOIN charges c ON c.charging_process_id = cp.id AND c.date = lc.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n)\nSELECT\n  (FLOOR(odo_km / 500) * 500)::text || '-' || (FLOOR(odo_km / 500) * 500 + 500)::text AS \"Odometer [km]\",\n  ROUND(AVG(cap_kwh)::numeric, 2) AS \"Avg Capacity [kWh]\"\nFROM session_cap\nWHERE odo_km IS NOT NULL\nGROUP BY 1\nORDER BY MIN(odo_km)",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Capacity vs Odometer",
+      "type": "barchart",
+      "description": "Average estimated battery capacity per 500 km odometer band — degradation vs mileage."
     }
   ],
   "preload": false,
