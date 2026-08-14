@@ -1614,7 +1614,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  CASE\n    WHEN duration_min < 15 THEN '<15 min'\n    WHEN duration_min < 30 THEN '15-30 min'\n    WHEN duration_min < 60 THEN '30-60 min'\n    WHEN duration_min < 120 THEN '1-2 hours'\n    WHEN duration_min < 240 THEN '2-4 hours'\n    ELSE '>4 hours'\n  END AS \"Duration\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  CASE\n    WHEN duration_min < 15 THEN '<15 min'\n    WHEN duration_min < 30 THEN '15-30 min'\n    WHEN duration_min < 60 THEN '30-60 min'\n    WHEN duration_min < 120 THEN '1-2 hours'\n    WHEN duration_min < 240 THEN '2-4 hours'\n    ELSE '>4 hours'\n  END AS \"Duration\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY MIN(duration_min)",
           "refId": "A"
         }
       ],

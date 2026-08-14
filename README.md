@@ -167,7 +167,7 @@ Then add the volume mounts as described in Method 1.
 | `preferred_range` | Hidden | Preferred range type from TeslaMate settings (rated/ideal) |
 | `base_url` | Hidden | TeslaMate web UI URL |
 | `nominal_capacity` | Textbox | Optional factory battery capacity in kWh. When `0`, the dashboard uses auto-detected MaxCapacity |
-| `efficiency` | Hidden Query | Car efficiency factor from `cars` table (all dashboards) |
+| `efficiency` | Hidden Query | Car efficiency factor in Wh/km (converted from `cars.efficiency` kWh/km) |
 
 > **Note for LFP batteries:** Vehicles with LFP (Lithium Iron Phosphate) batteries (e.g., Standard Range Model 3) should be charged to 100% regularly for accurate SoC readings, which also improves capacity estimates in these dashboards.
 
@@ -202,7 +202,7 @@ Respects `preferred_range` setting (rated vs ideal). Intervals shorter than 30 m
 
 Estimated energy lost converts range loss using the car's efficiency factor:
 ```
-Energy Lost (kWh) = Range Lost (km) × efficiency (kWh/km) / 1000
+Energy Lost (kWh) = Range Lost (km) × efficiency (Wh/km) / 1000
 ```
 
 ### Battery Capacity Estimation

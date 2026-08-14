@@ -144,7 +144,7 @@
         "multi": false,
         "name": "efficiency",
         "options": [],
-        "query": "SELECT efficiency FROM cars WHERE id = $car_id",
+        "query": "SELECT efficiency * 1000 FROM cars WHERE id = $car_id",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -885,7 +885,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.outside_temp_avg\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  DATE(end_date) AS \"Date\",\n  ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Range Lost [$length_unit]\",\n  ROUND(AVG(gap_hours)::numeric, 1) AS \"Park Hours [h]\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(AVG(gap_hours), 0))::numeric, 2) AS \"Hourly Rate [$length_unit/h]\",\n  ROUND(AVG(outside_temp_avg)::numeric, 1) AS \"Temp [°C]\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY \"Range Lost [$length_unit]\" DESC\nLIMIT 20",
+          "rawSql": "WITH drive_gaps AS (\n  SELECT \n    d.start_date,\n    d.end_date,\n    convert_km(d.end_${preferred_range}_range_km, '$length_unit') AS end_range,\n    LEAD(convert_km(d.start_${preferred_range}_range_km, '$length_unit')) OVER (ORDER BY d.start_date) AS next_start_range,\n    EXTRACT(EPOCH FROM (LEAD(d.start_date) OVER (ORDER BY d.start_date) - d.end_date)) / 3600 AS gap_hours,\n    d.outside_temp_avg\n  FROM drives d\n  WHERE d.car_id = $car_id\n    AND $__timeFilter(d.start_date)\n    AND d.end_date IS NOT NULL\n    AND d.start_${preferred_range}_range_km IS NOT NULL\n    AND d.end_${preferred_range}_range_km IS NOT NULL\n)\nSELECT \n  DATE(end_date) AS \"Date\",\n  ROUND(SUM(GREATEST(end_range - next_start_range, 0))::numeric, 2) AS \"Range Lost [$length_unit]\",\n  ROUND(AVG(gap_hours)::numeric, 1) AS \"Park Hours [h]\",\n  ROUND((SUM(GREATEST(end_range - next_start_range, 0)) / NULLIF(SUM(gap_hours), 0))::numeric, 2) AS \"Hourly Rate [$length_unit/h]\",\n  ROUND(AVG(outside_temp_avg)::numeric, 1) AS \"Temp [°C]\"\nFROM drive_gaps\nWHERE next_start_range IS NOT NULL\n  AND end_range > next_start_range\n  AND gap_hours > 0.5\n  AND gap_hours < 168\nGROUP BY 1\nORDER BY \"Range Lost [$length_unit]\" DESC\nLIMIT 20",
           "refId": "A"
         }
       ],
