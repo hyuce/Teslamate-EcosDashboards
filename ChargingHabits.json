@@ -85,7 +85,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": [
           {
@@ -318,7 +318,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "m"
         },
         "overrides": []
       },
@@ -586,7 +586,7 @@
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  TO_CHAR(start_date, 'YYYY-MM') AS \"Month\",\n  ROUND(COALESCE(SUM(cost), 0)::numeric, 2) AS \"Cost\",\n  ROUND(SUM(charge_energy_used)::numeric, 1) AS \"Energy Used [kWh]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  TO_CHAR(start_date, 'YYYY-MM') AS \"Month\",\n  ROUND(COALESCE(SUM(cost), 0)::numeric, 2) AS \"Cost [TL]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
           "refId": "A",
           "sql": {
             "columns": [
@@ -651,7 +651,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": [
           {
@@ -1664,8 +1664,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds",
-            "fixedColor": "#3b82f6"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "mappings": [],
           "thresholds": {
@@ -1677,7 +1677,7 @@
               }
             ]
           },
-          "unit": "short",
+          "unit": "none",
           "custom": {
             "graphMode": "area"
           }
@@ -1686,7 +1686,14 @@
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "none"
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -1696,9 +1703,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COUNT(*) AS \"Total Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0"
+          "rawSql": "SELECT start_date AS time, COUNT(*) OVER (ORDER BY start_date) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id AND charge_energy_added > 0 AND $__timeFilter(start_date)\nORDER BY start_date"
         }
       ],
       "transformations": []
@@ -1721,8 +1728,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds",
-            "fixedColor": "#3b82f6"
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
           },
           "mappings": [],
           "thresholds": {
@@ -1734,7 +1741,7 @@
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {
             "graphMode": "area"
           }
@@ -1743,7 +1750,14 @@
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "none"
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -1753,9 +1767,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND(AVG(charge_energy_added)::numeric, 1) AS \"Avg Energy\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0"
+          "rawSql": "SELECT start_date AS time, ROUND(AVG(charge_energy_added) OVER (ORDER BY start_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::numeric, 1) AS \"Avg Energy [kWh]\"\nFROM charging_processes\nWHERE car_id = $car_id AND charge_energy_added > 0 AND $__timeFilter(start_date)\nORDER BY start_date"
         }
       ],
       "transformations": []
@@ -1823,7 +1837,7 @@
               }
             ]
           },
-          "unit": "kwh"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -2200,8 +2214,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds",
-            "fixedColor": "#3b82f6"
+            "mode": "fixed",
+            "fixedColor": "#2FC4B2"
           },
           "mappings": [],
           "thresholds": {
@@ -2213,7 +2227,7 @@
               }
             ]
           },
-          "unit": "kWh",
+          "unit": "kwatth",
           "custom": {
             "graphMode": "area"
           }
@@ -2222,7 +2236,14 @@
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "none"
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -2232,9 +2253,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(charge_energy_added)::numeric, 1) AS \"Free Energy [kWh]\"\nFROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND cost IS NULL AND $__timeFilter(start_date)"
+          "rawSql": "SELECT start_date AS time, ROUND(SUM(charge_energy_added) OVER (ORDER BY start_date)::numeric, 1) AS \"Free Energy [kWh]\"\nFROM charging_processes\nWHERE car_id = $car_id AND charge_energy_added > 0 AND cost IS NULL AND $__timeFilter(start_date)\nORDER BY start_date"
         }
       ],
       "transformations": []
