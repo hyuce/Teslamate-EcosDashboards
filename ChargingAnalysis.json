@@ -110,7 +110,7 @@
       "id": 4,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -212,7 +212,7 @@
       "id": 402,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -365,7 +365,7 @@
           "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  cp.start_date AS time,\n  ROUND((cp.charge_energy_added / NULLIF((cp.end_battery_level - cp.start_battery_level)::numeric / 100.0, 0))::numeric, 1) AS \"Est. Capacity [kWh]\",\n  (cp.start_battery_level)::text || '% \u2192 ' || (cp.end_battery_level)::text || '%' AS \"SOC Range\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.end_battery_level > cp.start_battery_level\n  AND (cp.end_battery_level - cp.start_battery_level) > 10\n  AND cp.duration_min > 10\nORDER BY cp.start_date",
+          "rawSql": "SELECT\n  cp.start_date AS time,\n  ROUND((cp.charge_energy_added / NULLIF((cp.end_battery_level - cp.start_battery_level)::numeric / 100.0, 0))::numeric, 1) AS \"Est. Capacity [kWh]\",\n  (cp.start_battery_level)::text || '% → ' || (cp.end_battery_level)::text || '%' AS \"SOC Range\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.end_battery_level > cp.start_battery_level\n  AND (cp.end_battery_level - cp.start_battery_level) > 10\n  AND cp.duration_min > 10\nORDER BY cp.start_date",
           "refId": "A",
           "sql": {
             "columns": [
@@ -538,7 +538,7 @@
           "format": "time_series",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroup(cp.start_date, '30d') AS time,\n  ROUND(AVG((cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100))::numeric, 1) AS \"30-Day Avg [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.charge_energy_used > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroup(cp.start_date, '30d') AS time,\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"30-Day Avg [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.charge_energy_used > 0\nGROUP BY 1\nORDER BY 1",
           "refId": "B",
           "sql": {
             "columns": [
@@ -641,7 +641,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Shallow (\u226430pp)"
+              "options": "Shallow (≤30pp)"
             },
             "properties": [
               {
@@ -696,7 +696,7 @@
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  CASE WHEN (end_battery_level - start_battery_level) > 30 THEN 'Deep (>30pp)' ELSE 'Shallow (\u226430pp)' END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  CASE WHEN (end_battery_level - start_battery_level) > 30 THEN 'Deep (>30pp)' ELSE 'Shallow (≤30pp)' END AS \"Type\",\n  COUNT(*) AS \"Sessions\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
           "refId": "A",
           "sql": {
             "columns": [
@@ -719,7 +719,7 @@
       ],
       "title": "Deep vs Shallow Charging",
       "type": "barchart",
-      "description": "Share of sessions with SOC delta above 30pp (deep \u2014 better for capacity estimates) vs. below (shallow)."
+      "description": "Share of sessions with SOC delta above 30pp (deep — better for capacity estimates) vs. below (shallow)."
     },
     {
       "datasource": {
@@ -978,7 +978,7 @@
       },
       "type": "row",
       "title": "Details",
-      "collapsed": false
+      "collapsed": true
     },
     {
       "datasource": {
@@ -1123,7 +1123,7 @@
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  cp.start_date AS \"Date\",\n  COALESCE(g.name, a.name, 'Unknown') AS \"Location\",\n  ROUND(cp.charge_energy_added::numeric, 1) AS \"Energy Added [kWh]\",\n  ROUND((cp.charge_energy_added / NULLIF((cp.end_battery_level - cp.start_battery_level)::numeric / 100.0, 0))::numeric, 1) AS \"Est. Capacity [kWh]\",\n  ROUND((cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Efficiency [%]\",\n  cp.start_battery_level || '% \u2192 ' || cp.end_battery_level || '%' AS \"SOC\",\n  cp.duration_min AS \"Duration [min]\",\n  CASE WHEN EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) THEN 'DC' ELSE 'AC' END AS \"Type\"\nFROM charging_processes cp\nLEFT JOIN geofences g ON cp.geofence_id = g.id\nLEFT JOIN addresses a ON cp.address_id = a.id\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.end_battery_level > cp.start_battery_level\n  AND (cp.end_battery_level - cp.start_battery_level) > 10\nORDER BY cp.start_date DESC\nLIMIT 20",
+          "rawSql": "SELECT\n  cp.start_date AS \"Date\",\n  COALESCE(g.name, a.name, 'Unknown') AS \"Location\",\n  ROUND(cp.charge_energy_added::numeric, 1) AS \"Energy Added [kWh]\",\n  ROUND((cp.charge_energy_added / NULLIF((cp.end_battery_level - cp.start_battery_level)::numeric / 100.0, 0))::numeric, 1) AS \"Est. Capacity [kWh]\",\n  ROUND((cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Efficiency [%]\",\n  cp.start_battery_level || '% → ' || cp.end_battery_level || '%' AS \"SOC\",\n  cp.duration_min AS \"Duration [min]\",\n  CASE WHEN EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) THEN 'DC' ELSE 'AC' END AS \"Type\"\nFROM charging_processes cp\nLEFT JOIN geofences g ON cp.geofence_id = g.id\nLEFT JOIN addresses a ON cp.address_id = a.id\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_added > 0\n  AND cp.end_battery_level > cp.start_battery_level\n  AND (cp.end_battery_level - cp.start_battery_level) > 10\nORDER BY cp.start_date DESC\nLIMIT 20",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1280,7 +1280,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT $__timeGroup(cp.end_date, '1d') AS time, ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"DC Fast\" FROM charging_processes cp WHERE cp.car_id = $car_id AND $__timeFilter(cp.end_date) AND cp.charge_energy_added > 0 AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) GROUP BY 1 ORDER BY 1",
+          "rawSql": "SELECT $__timeGroup(cp.end_date, '1d') AS time, ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"DC Fast\" FROM charging_processes cp WHERE cp.car_id = $car_id AND $__timeFilter(cp.start_date) AND cp.charge_energy_added > 0 AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1) GROUP BY 1 ORDER BY 1",
           "refId": "B"
         }
       ],
@@ -1311,7 +1311,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 5 THEN '0-5\u00b0C'\n      WHEN temp < 10 THEN '5-10\u00b0C'\n      WHEN temp < 15 THEN '10-15\u00b0C'\n      WHEN temp < 20 THEN '15-20\u00b0C'\n      WHEN temp < 25 THEN '20-25\u00b0C'\n      ELSE '25-30\u00b0C'\n    END AS temp_range,\n    CASE\n      WHEN efficiency < 85 THEN '<85%'\n      WHEN efficiency < 90 THEN '85-90%'\n      WHEN efficiency < 95 THEN '90-95%'\n      WHEN efficiency < 100 THEN '95-100%'\n      ELSE '>100%'\n    END AS eff_range\n  FROM sessions\n)\nSELECT\n  t.temp_range AS \"Temperature\",\n  COUNT(*) FILTER (WHERE d.eff_range = '<85%') AS \"<85%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '85-90%') AS \"85-90%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '90-95%') AS \"90-95%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '95-100%') AS \"95-100%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '>100%') AS \">100%\"\nFROM (VALUES ('0-5\u00b0C'),('5-10\u00b0C'),('10-15\u00b0C'),('15-20\u00b0C'),('20-25\u00b0C'),('25-30\u00b0C')) AS t(temp_range)\nLEFT JOIN data d ON d.temp_range = t.temp_range\nGROUP BY t.temp_range\nORDER BY t.temp_range",
+          "rawSql": "WITH sessions AS (\n  SELECT\n    cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100 AS efficiency,\n    cp.outside_temp_avg AS temp\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_used > 0\n    AND cp.charge_energy_added > 0\n    AND cp.outside_temp_avg IS NOT NULL\n),\ndata AS (\n  SELECT\n    CASE\n      WHEN temp < 0 THEN '<0°C'\n      WHEN temp < 5 THEN '0-5°C'\n      WHEN temp < 10 THEN '5-10°C'\n      WHEN temp < 15 THEN '10-15°C'\n      WHEN temp < 20 THEN '15-20°C'\n      WHEN temp < 25 THEN '20-25°C'\n      WHEN temp <= 30 THEN '25-30°C'\n      ELSE '>30°C'\n    END AS temp_range,\n    CASE\n      WHEN efficiency < 85 THEN '<85%'\n      WHEN efficiency < 90 THEN '85-90%'\n      WHEN efficiency < 95 THEN '90-95%'\n      WHEN efficiency < 100 THEN '95-100%'\n      ELSE '>100%'\n    END AS eff_range\n  FROM sessions\n)\nSELECT\n  t.temp_range AS \"Temperature\",\n  COUNT(*) FILTER (WHERE d.eff_range = '<85%') AS \"<85%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '85-90%') AS \"85-90%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '90-95%') AS \"90-95%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '95-100%') AS \"95-100%\",\n  COUNT(*) FILTER (WHERE d.eff_range = '>100%') AS \">100%\"\nFROM (VALUES ('<0°C'),('0-5°C'),('5-10°C'),('10-15°C'),('15-20°C'),('20-25°C'),('25-30°C'),('>30°C')) AS t(temp_range)\nLEFT JOIN data d ON d.temp_range = t.temp_range\nGROUP BY t.temp_range\nORDER BY t.temp_range",
           "refId": "A"
         }
       ],
@@ -1405,7 +1405,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"AC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "rawSql": "SELECT\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"AC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND NOT EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
           "refId": "A"
         }
       ],
@@ -1458,7 +1458,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"DC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
+          "rawSql": "SELECT\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"DC Efficiency [%]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND EXISTS (SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1)",
           "refId": "A"
         }
       ],
@@ -1511,7 +1511,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  TO_CHAR(cp.start_date, 'YYYY-MM') AS \"Month\",\n  COUNT(*) AS \"Sessions\",\n  ROUND(AVG(cp.charge_energy_added / NULLIF(cp.charge_energy_used, 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\",\n  ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"Total Energy [kWh]\",\n  ROUND(AVG(cp.duration_min)::numeric, 0) AS \"Avg Duration [min]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND cp.charge_energy_added > 0\nGROUP BY 1\nORDER BY 1 DESC",
+          "rawSql": "SELECT\n  TO_CHAR(cp.start_date, 'YYYY-MM') AS \"Month\",\n  COUNT(*) AS \"Sessions\",\n  ROUND((SUM(cp.charge_energy_added) / NULLIF(SUM(cp.charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\",\n  ROUND(SUM(cp.charge_energy_added)::numeric, 1) AS \"Total Energy [kWh]\",\n  ROUND(AVG(cp.duration_min)::numeric, 0) AS \"Avg Duration [min]\"\nFROM charging_processes cp\nWHERE cp.car_id = $car_id\n  AND $__timeFilter(cp.start_date)\n  AND cp.charge_energy_used > 0\n  AND cp.charge_energy_added > 0\nGROUP BY 1\nORDER BY 1 DESC",
           "refId": "A"
         }
       ],
@@ -1710,7 +1710,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  CASE\n    WHEN start_battery_level < 20 THEN '0-20%'\n    WHEN start_battery_level < 40 THEN '20-40%'\n    WHEN start_battery_level < 60 THEN '40-60%'\n    WHEN start_battery_level < 80 THEN '60-80%'\n    ELSE '80-100%'\n  END AS \"SOC Range\",\n  ROUND(AVG(charge_energy_added / NULLIF(charge_energy_used, 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_used > 0\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  CASE\n    WHEN start_battery_level < 20 THEN '0-20%'\n    WHEN start_battery_level < 40 THEN '20-40%'\n    WHEN start_battery_level < 60 THEN '40-60%'\n    WHEN start_battery_level < 80 THEN '60-80%'\n    ELSE '80-100%'\n  END AS \"SOC Range\",\n  ROUND((SUM(charge_energy_added) / NULLIF(SUM(charge_energy_used), 0) * 100)::numeric, 1) AS \"Avg Efficiency [%]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND $__timeFilter(start_date)\n  AND charge_energy_used > 0\n  AND charge_energy_added > 0\nGROUP BY 1\nORDER BY 1",
           "refId": "A"
         }
       ],
@@ -1920,54 +1920,6 @@
           "type": "grafana-postgresql-datasource",
           "uid": "TeslaMate"
         },
-        "definition": "SELECT unit_of_length FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "length_unit",
-        "options": [],
-        "query": "SELECT unit_of_length FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT unit_of_temperature FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "temp_unit",
-        "options": [],
-        "query": "SELECT unit_of_temperature FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT preferred_range FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "preferred_range",
-        "options": [],
-        "query": "SELECT preferred_range FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
         "definition": "SELECT base_url FROM settings LIMIT 1",
         "hide": 2,
         "includeAll": false,
@@ -1975,39 +1927,6 @@
         "options": [],
         "query": "SELECT base_url FROM settings LIMIT 1",
         "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT\n  ROUND(AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))) AS __value,\n  CONCAT('Auto (', ROUND(AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))), ' kWh)') AS __text\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 30\n  AND duration_min > 30\n  AND $__timeFilter(start_date)\nHAVING COUNT(*) > 3",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Factory Battery Capacity (kWh)",
-        "name": "nominal_capacity",
-        "options": [],
-        "query": "SELECT\n  ROUND(AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))) AS __value,\n  CONCAT('Auto (', ROUND(AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0))), ' kWh)') AS __text\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 30\n  AND duration_min > 30\n  AND $__timeFilter(start_date)\nHAVING COUNT(*) > 3",
-        "refresh": 2,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT efficiency FROM cars WHERE id = $car_id",
-        "hide": 2,
-        "includeAll": false,
-        "name": "efficiency",
-        "options": [],
-        "query": "SELECT efficiency FROM cars WHERE id = $car_id",
-        "refresh": 2,
         "regex": "",
         "type": "query"
       }
@@ -2024,5 +1943,5 @@
   "version": 0,
   "weekStart": "monday",
   "id": null,
-  "description": "TeslaMate charging efficiency metrics, AC vs DC breakdowns, and individual charge session analysis. Part of Teslamate Ecos custom dashboards \u2014 built on a Tesla named Ecos."
+  "description": "TeslaMate charging efficiency metrics, AC vs DC breakdowns, and individual charge session analysis. Part of Teslamate Ecos custom dashboards — built on a Tesla named Ecos."
 }

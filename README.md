@@ -159,15 +159,16 @@ Then add the volume mounts as described in Method 1.
 
 ## Variables
 
-| Variable | Type | Description |
-|----------|------|-------------|
-| `car_id` | Query | Select which Tesla vehicle to display |
-| `length_unit` | Hidden | Length unit from TeslaMate settings (km/mi) |
-| `temp_unit` | Hidden | Temperature unit from TeslaMate settings (C/F) |
-| `preferred_range` | Hidden | Preferred range type from TeslaMate settings (rated/ideal) |
-| `base_url` | Hidden | TeslaMate web UI URL |
-| `nominal_capacity` | Textbox | Optional factory battery capacity in kWh. When `0`, the dashboard uses auto-detected MaxCapacity |
-| `efficiency` | Hidden Query | Car efficiency factor in Wh/km (converted from `cars.efficiency` kWh/km) |
+| Variable | Dashboard(s) | Type | Description |
+|----------|-------------|------|-------------|
+| `car_id` | All | Query | Select which Tesla vehicle to display |
+| `base_url` | All | Hidden | TeslaMate web UI URL (used for the TeslaMate link) |
+| `length_unit` | Phantom Drain | Hidden | Length unit from TeslaMate settings (km/mi) |
+| `preferred_range` | Phantom Drain | Hidden | Preferred range type from TeslaMate settings (rated/ideal) |
+| `efficiency` | Phantom Drain | Hidden Query | Car efficiency factor in Wh/km (converted from `cars.efficiency` kWh/km) |
+| `nominal_capacity` | Battery Capacity | Textbox | Optional factory battery capacity in kWh. When `0`, the dashboard uses auto-detected MaxCapacity |
+
+> **Note:** Temperature values are displayed in **°C** (TeslaMate stores outside temperature in Celsius). The Battery Capacity dashboard estimates capacity using `rated_battery_range_km` (not the `preferred_range` setting), matching the official TeslaMate battery health methodology.
 
 > **Note for LFP batteries:** Vehicles with LFP (Lithium Iron Phosphate) batteries (e.g., Standard Range Model 3) should be charged to 100% regularly for accurate SoC readings, which also improves capacity estimates in these dashboards.
 
@@ -288,7 +289,7 @@ Teslamate-EcosDashboards/
 ├── PhantomDrain.json            # Phantom drain analysis dashboard
 ├── provisioning.yml             # Grafana provisioning config
 ├── README.md                    # This file
-├── LICENSE                      # MIT license
+├── LICENSE                      # GPLv3 license
 ├── .gitignore
 └── screenshots/                 # Dashboard preview images
 ```

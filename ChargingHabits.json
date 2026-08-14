@@ -187,7 +187,7 @@
       ],
       "title": "Charging Pattern",
       "type": "piechart",
-      "description": "Green = battery near empty (\u226420%) charged to full (\u226580%). Orange = battery above 50%, short top-off (<20% added). Blue = all other sessions.",
+      "description": "Green = battery near empty (≤20%) charged to full (≥80%). Orange = battery above 50%, short top-off (<20% added). Blue = all other sessions.",
       "links": [
         {
           "title": "Battery Capacity & Degradation",
@@ -663,7 +663,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "orange",
+                  "fixedColor": "#F79520",
                   "mode": "fixed"
                 }
               }
@@ -678,7 +678,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "green",
+                  "fixedColor": "#73BF69",
                   "mode": "fixed"
                 }
               }
@@ -746,10 +746,10 @@
       ],
       "title": "AC vs DC Charging Breakdown",
       "type": "piechart",
-      "description": "Share of charging sessions split by AC (green \u2014 home/Level 2) vs. DC Fast (orange \u2014 Supercharger, CCS)."
+      "description": "Share of charging sessions split by AC (green — home/Level 2) vs. DC Fast (orange — Supercharger, CCS)."
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1359,7 +1359,7 @@
       ],
       "title": "Post-Charge Idle Time",
       "type": "table",
-      "description": "Recent sessions with minutes spent plugged in before the next drive started. Red = \u2265120 min (potential vampire drain), orange = \u226530 min."
+      "description": "Recent sessions with minutes spent plugged in before the next drive started. Red = ≥120 min (potential vampire drain), orange = ≥30 min."
     },
     {
       "datasource": {
@@ -1664,7 +1664,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
+            "mode": "thresholds",
             "fixedColor": "#3b82f6"
           },
           "mappings": [],
@@ -1672,7 +1672,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#303030",
+                "color": "#808080",
                 "value": null
               }
             ]
@@ -1684,7 +1684,10 @@
         },
         "overrides": []
       },
-      "options": {},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none"
+      },
       "pluginVersion": "11.5.2",
       "targets": [
         {
@@ -1718,7 +1721,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
+            "mode": "thresholds",
             "fixedColor": "#3b82f6"
           },
           "mappings": [],
@@ -1726,19 +1729,22 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#303030",
+                "color": "#808080",
                 "value": null
               }
             ]
           },
-          "unit": "kwh",
+          "unit": "kWh",
           "custom": {
             "graphMode": "area"
           }
         },
         "overrides": []
       },
-      "options": {},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none"
+      },
       "pluginVersion": "11.5.2",
       "targets": [
         {
@@ -1875,7 +1881,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH monthly AS (\n  SELECT\n    DATE_TRUNC('month', cp.end_date)::date AS month,\n    CASE WHEN EXISTS (\n      SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1\n    ) THEN 'DC' ELSE 'AC' END AS charge_type,\n    cp.charge_energy_added\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.end_date)\n    AND cp.charge_energy_added > 0\n)\nSELECT\n  month AS \"time\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'AC') AS \"AC\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'DC') AS \"DC\"\nFROM monthly\nGROUP BY month\nORDER BY month"
+          "rawSql": "WITH monthly AS (\n  SELECT\n    DATE_TRUNC('month', cp.end_date)::date AS month,\n    CASE WHEN EXISTS (\n      SELECT 1 FROM charges c WHERE c.charging_process_id = cp.id AND c.fast_charger_present = true LIMIT 1\n    ) THEN 'DC' ELSE 'AC' END AS charge_type,\n    cp.charge_energy_added\n  FROM charging_processes cp\n  WHERE cp.car_id = $car_id\n    AND $__timeFilter(cp.start_date)\n    AND cp.charge_energy_added > 0\n)\nSELECT\n  month AS \"time\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'AC') AS \"AC\",\n  SUM(charge_energy_added) FILTER (WHERE charge_type = 'DC') AS \"DC\"\nFROM monthly\nGROUP BY month\nORDER BY month"
         }
       ]
     }
@@ -1910,54 +1916,6 @@
           "type": "grafana-postgresql-datasource",
           "uid": "TeslaMate"
         },
-        "definition": "SELECT unit_of_length FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "length_unit",
-        "options": [],
-        "query": "SELECT unit_of_length FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT unit_of_temperature FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "temp_unit",
-        "options": [],
-        "query": "SELECT unit_of_temperature FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT preferred_range FROM settings LIMIT 1",
-        "hide": 2,
-        "includeAll": false,
-        "name": "preferred_range",
-        "options": [],
-        "query": "SELECT preferred_range FROM settings LIMIT 1",
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
         "definition": "SELECT base_url FROM settings LIMIT 1",
         "hide": 2,
         "includeAll": false,
@@ -1965,22 +1923,6 @@
         "options": [],
         "query": "SELECT base_url FROM settings LIMIT 1",
         "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "TeslaMate"
-        },
-        "definition": "SELECT efficiency FROM cars WHERE id = $car_id",
-        "hide": 2,
-        "includeAll": false,
-        "name": "efficiency",
-        "options": [],
-        "query": "SELECT efficiency FROM cars WHERE id = $car_id",
-        "refresh": 2,
         "regex": "",
         "type": "query"
       }
