@@ -5,10 +5,27 @@ All notable changes to the TeslaMate Ecos Dashboards are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2026-08-14
+## [2.4.0] - 2026-08-15
+
+### Changed
+- **Visual overhaul**: historical sparklines added to stat panels across all dashboards, with a consistent modern color palette (blue/orange/green/purple/teal/amber).
+- **Battery Capacity & Degradation**: `Battery Health` is now a gauge; uniform widget sizes and logical ordering; replaced `Total Energy Charged` with `Max Rated Range`.
+- **Charging Analysis**: weighted efficiency (`SUM/SUM`) across all efficiency panels; `Charging Cost per Month` is cost-only (removed the TL-vs-kWh axis mix).
+- **Charging Pattern**: modern hex colors and frequency-ordered slices.
+
+### Fixed
+- **Units**: custom `kWh`/`kW` → proper Grafana codes (`kwatth`/`kwatt`); counts → `none`; cost panels → `currencyTRY`.
+- **Drive Efficiency / Vehicle State / Finance**: missing `base_url` variable (broke the TeslaMate dashboard link).
+- **Battery**: `Capacity by Firmware Version` missing CTE alias (`CROSS JOIN rated_efficiency re`).
+- **Charging Habits**: `Charging Cost per Month` mixed TL and kWh on a single axis.
 
 ### Removed
-- **Data Quality** dashboard (incomplete-data checks were empty; low value for this single-car setup).
+- **Data Quality** dashboard (empty integrity checks; low value for a single-car setup).
+
+### Documentation
+- Refreshed all dashboard screenshots and added new-dashboard sections to the README.
+
+## [2.3.0] - 2026-08-14
 
 ### Added
 - **Drive Efficiency** (new dashboard): consumption by speed and temperature, monthly distance/duration, drives by day-of-week, elevation.
