@@ -264,10 +264,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 1
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 13
       },
       "options": {
         "legend": {
@@ -334,18 +334,6 @@
       ]
     },
     {
-      "id": 601,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 9
-      },
-      "type": "row",
-      "title": "Capacity Metrics",
-      "collapsed": false
-    },
-    {
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
@@ -375,8 +363,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 0,
-        "y": 10
+        "x": 6,
+        "y": 1
       },
       "options": {
         "textMode": "value_and_name",
@@ -430,8 +418,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 10
+        "x": 12,
+        "y": 1
       },
       "options": {
         "textMode": "value_and_name",
@@ -497,8 +485,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 10
+        "x": 18,
+        "y": 1
       },
       "options": {
         "textMode": "value_and_name",
@@ -560,8 +548,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 10
+        "x": 0,
+        "y": 9
       },
       "options": {
         "textMode": "value_and_name",
@@ -615,8 +603,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 0,
-        "y": 14
+        "x": 6,
+        "y": 5
       },
       "options": {
         "textMode": "value_and_name",
@@ -670,8 +658,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 14
+        "x": 12,
+        "y": 5
       },
       "options": {
         "textMode": "value_and_name",
@@ -733,8 +721,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 14
+        "x": 18,
+        "y": 5
       },
       "options": {
         "textMode": "value_and_name",
@@ -764,7 +752,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 23
       },
       "type": "row",
       "title": "Advanced Insights",
@@ -801,7 +789,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 19
+        "y": 24
       },
       "options": {
         "textMode": "value_and_name",
@@ -856,7 +844,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 19
+        "y": 24
       },
       "options": {
         "textMode": "value_and_name",
@@ -911,7 +899,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 19
+        "y": 24
       },
       "options": {
         "textMode": "value_and_name",
@@ -966,7 +954,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 19
+        "y": 24
       },
       "options": {
         "textMode": "value_and_name",
@@ -1115,7 +1103,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 29
       },
       "id": 50,
       "options": {
@@ -1167,7 +1155,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 36
       },
       "type": "row",
       "title": "Temperature & Charger Type Analysis",
@@ -1358,7 +1346,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 37
       },
       "id": null,
       "options": {
@@ -1606,7 +1594,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 37
       },
       "id": null,
       "options": {
@@ -1681,7 +1669,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 44
       },
       "id": 701,
       "collapsed": false
@@ -1740,7 +1728,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 45
       },
       "id": 702,
       "options": {
@@ -1809,7 +1797,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 52
       },
       "id": 703,
       "collapsed": false
@@ -1862,7 +1850,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 48
+        "y": 53
       },
       "id": 704,
       "options": {
@@ -1967,7 +1955,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 53
       },
       "id": 704,
       "options": {
@@ -2031,7 +2019,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 28
       },
       "id": 705,
       "collapsed": false
