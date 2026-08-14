@@ -174,7 +174,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#2FC4B2"
           },
           "decimals": 0,
           "mappings": [],
@@ -200,7 +201,7 @@
       "id": 712,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -223,9 +224,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(*) AS \"Sessions Analyzed\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND end_battery_level > start_battery_level\n  AND (end_battery_level - start_battery_level) > 10\n  AND duration_min > 10\n  AND $__timeFilter(start_date)",
+          "rawSql": "SELECT start_date AS time, COUNT(*) OVER (ORDER BY start_date) AS \"Sessions\" FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND end_battery_level > start_battery_level AND (end_battery_level - start_battery_level) > 10 AND duration_min > 10 AND $__timeFilter(start_date) ORDER BY start_date",
           "refId": "A"
         }
       ],
@@ -241,7 +242,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#8E5AC8"
           },
           "decimals": 0,
           "mappings": [],
@@ -267,7 +269,7 @@
       "id": 715,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -290,9 +292,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH current AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 30\n    AND duration_min > 30\n    AND $__timeFilter(start_date)\n)\nSELECT ROUND((SUM(cp.charge_energy_added) / NULLIF(MAX(current.cap), 0))::numeric, 1) AS \"Charge Cycles\"\nFROM charging_processes cp, current\nWHERE cp.car_id = $car_id\n  AND cp.charge_energy_added > 0\n  AND $__timeFilter(cp.start_date)",
+          "rawSql": "WITH current AS (SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric/100.0, 0)) AS cap FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0 AND end_battery_level > start_battery_level AND (end_battery_level - start_battery_level) > 30 AND duration_min > 30),\ncum AS (SELECT start_date AS time, SUM(charge_energy_added) OVER (ORDER BY start_date) AS ce FROM charging_processes WHERE car_id = $car_id AND charge_energy_added > 0)\nSELECT time, ROUND((ce / NULLIF((SELECT cap FROM current), 0))::numeric, 1) AS \"Charge Cycles\" FROM cum ORDER BY time",
           "refId": "A"
         }
       ],
@@ -450,7 +452,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
           },
           "decimals": 2,
           "mappings": [],
@@ -476,7 +479,7 @@
       "id": 714,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -499,9 +502,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH deep_sessions AS (\n  SELECT\n    start_date,\n    charge_energy_added,\n    end_battery_level,\n    start_battery_level,\n    ROW_NUMBER() OVER (ORDER BY start_date ASC) AS rn_asc,\n    ROW_NUMBER() OVER (ORDER BY start_date DESC) AS rn_desc\n  FROM charging_processes\n  WHERE car_id = $car_id\n    AND charge_energy_added > 0\n    AND end_battery_level > start_battery_level\n    AND (end_battery_level - start_battery_level) > 30\n    AND duration_min > 30\n    AND $__timeFilter(start_date)\n),\nreference AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_asc <= 10\n),\ncurrent AS (\n  SELECT AVG(charge_energy_added / NULLIF((end_battery_level - start_battery_level)::numeric / 100.0, 0)) AS cap\n  FROM deep_sessions WHERE rn_desc <= 10\n)\nSELECT ROUND((current.cap / NULLIF(cars.efficiency, 0))::numeric, 1) AS \"Range @100% [km]\"\nFROM current, cars\nWHERE cars.id = $car_id",
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nsessions AS (\n  SELECT cp.end_date AS time,\n    c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS cap\n  FROM charging_processes cp\n  INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges WHERE usable_battery_level > 0 GROUP BY charging_process_id) lc\n    ON cp.id = lc.charging_process_id\n  INNER JOIN charges c ON c.charging_process_id = cp.id AND c.date = lc.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND cp.charge_energy_added >= re.efficiency\n),\ncars_row AS (SELECT efficiency FROM cars WHERE id = $car_id)\nSELECT time, ROUND((cap / (SELECT efficiency FROM cars_row))::numeric, 1) AS \"Range @100% [km]\" FROM sessions ORDER BY time",
           "refId": "A"
         }
       ],
@@ -651,7 +654,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#F79520"
           },
           "decimals": 2,
           "mappings": [],
@@ -689,7 +693,7 @@
       "id": 709,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -712,9 +716,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN (\n      SELECT charging_process_id, MAX(date) AS date\n      FROM charges\n      WHERE usable_battery_level > 0\n      GROUP BY charging_process_id\n    ) AS last_charge ON cp.id = last_charge.charging_process_id\n    INNER JOIN charges c\n      ON c.charging_process_id = cp.id AND c.date = last_charge.date\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n    ORDER BY cp.end_date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT ROUND((COALESCE(NULLIF($nominal_capacity, 0), max_capacity.cap) - current_capacity.cap)::numeric, 2) AS \"Lost [kWh]\"\nFROM max_capacity, current_capacity",
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nsessions AS (\n  SELECT cp.end_date AS time,\n    c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS cap\n  FROM charging_processes cp\n  INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges WHERE usable_battery_level > 0 GROUP BY charging_process_id) lc\n    ON cp.id = lc.charging_process_id\n  INNER JOIN charges c ON c.charging_process_id = cp.id AND c.date = lc.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND cp.charge_energy_added >= re.efficiency\n),\nrolling AS (\n  SELECT time, AVG(cap) OVER (ORDER BY time ROWS BETWEEN 49 PRECEDING AND CURRENT ROW) AS cap50 FROM sessions\n),\nref AS (SELECT MAX(cap) AS ref FROM sessions)\nSELECT time, ROUND((ref - cap50)::numeric, 2) AS \"Capacity Lost [kWh]\" FROM rolling, ref ORDER BY time",
           "refId": "A"
         }
       ],
@@ -872,7 +876,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
           },
           "decimals": 2,
           "mappings": [],
@@ -898,7 +903,7 @@
       "id": 708,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -921,9 +926,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nmax_capacity AS (\n  SELECT MAX(c.rated_battery_range_km * re.efficiency / c.usable_battery_level) AS cap\n  FROM charging_processes cp\n  INNER JOIN (\n    SELECT charging_process_id, MAX(date) AS date\n    FROM charges\n    WHERE usable_battery_level > 0\n    GROUP BY charging_process_id\n  ) AS last_charge ON cp.id = last_charge.charging_process_id\n  INNER JOIN charges c\n    ON c.charging_process_id = cp.id AND c.date = last_charge.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id\n    AND cp.end_date IS NOT NULL\n    AND cp.charge_energy_added >= re.efficiency\n    AND c.usable_battery_level > 0\n),\ncurrent_capacity AS (\n  SELECT AVG(capacity) AS cap\n  FROM (\n    SELECT c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS capacity\n    FROM charging_processes cp\n    INNER JOIN (\n      SELECT charging_process_id, MAX(date) AS date\n      FROM charges\n      WHERE usable_battery_level > 0\n      GROUP BY charging_process_id\n    ) AS last_charge ON cp.id = last_charge.charging_process_id\n    INNER JOIN charges c\n      ON c.charging_process_id = cp.id AND c.date = last_charge.date\n    CROSS JOIN rated_efficiency re\n    WHERE cp.car_id = $car_id\n      AND cp.end_date IS NOT NULL\n      AND cp.charge_energy_added >= re.efficiency\n    ORDER BY cp.end_date DESC\n    LIMIT 50\n  ) AS recent\n)\nSELECT ROUND(current_capacity.cap::numeric, 2) AS \"Current [kWh]\"\nFROM max_capacity, current_capacity",
+          "rawSql": "WITH rated_efficiency AS (\n  SELECT\n    COALESCE(derived_efficiency, car_efficiency) AS efficiency\n  FROM (\n    SELECT\n      ROUND((charge_energy_added / NULLIF(end_rated_range_km - start_rated_range_km, 0))::numeric, 3) * 100 AS derived_efficiency,\n      COUNT(*) AS count,\n      cars.id AS car_id,\n      cars.efficiency * 100 AS car_efficiency\n    FROM cars\n    LEFT JOIN charging_processes ON\n      cars.id = charging_processes.car_id\n      AND duration_min > 10\n      AND end_battery_level <= 95\n      AND start_rated_range_km IS NOT NULL\n      AND end_rated_range_km IS NOT NULL\n      AND charge_energy_added > 0\n    WHERE cars.id = $car_id\n    GROUP BY 1, 3, 4\n    ORDER BY 2 DESC\n    LIMIT 1\n  ) AS Efficiency\n),\nsessions AS (\n  SELECT cp.end_date AS time,\n    c.rated_battery_range_km * re.efficiency / c.usable_battery_level AS cap\n  FROM charging_processes cp\n  INNER JOIN (SELECT charging_process_id, MAX(date) AS date FROM charges WHERE usable_battery_level > 0 GROUP BY charging_process_id) lc\n    ON cp.id = lc.charging_process_id\n  INNER JOIN charges c ON c.charging_process_id = cp.id AND c.date = lc.date\n  CROSS JOIN rated_efficiency re\n  WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL AND cp.charge_energy_added >= re.efficiency\n)\nSELECT time, ROUND(AVG(cap) OVER (ORDER BY time ROWS BETWEEN 49 PRECEDING AND CURRENT ROW)::numeric, 2) AS \"Current Capacity [kWh]\" FROM sessions ORDER BY time",
           "refId": "A"
         }
       ],
@@ -2176,7 +2181,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#FFB357"
           },
           "decimals": 0,
           "mappings": [],
@@ -2202,7 +2208,7 @@
       "id": 721,
       "options": {
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
@@ -2225,9 +2231,9 @@
             "uid": "TeslaMate"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(MAX(c.rated_battery_range_km)::numeric, 0) AS \"Max Rated Range [km]\"\nFROM charges c\nINNER JOIN charging_processes cp ON cp.id = c.charging_process_id\nWHERE cp.car_id = $car_id\n  AND c.rated_battery_range_km IS NOT NULL",
+          "rawSql": "WITH daily AS (SELECT date_trunc('day', date) AS day, MAX(rated_battery_range_km) AS max_km FROM charges c INNER JOIN charging_processes cp ON cp.id = c.charging_process_id WHERE cp.car_id = $car_id AND c.rated_battery_range_km IS NOT NULL GROUP BY 1)\nSELECT day AS time, ROUND(MAX(max_km) OVER (ORDER BY day ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::numeric, 0) AS \"Max Rated Range [km]\" FROM daily ORDER BY day",
           "refId": "A"
         }
       ],
