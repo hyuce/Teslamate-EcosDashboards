@@ -2172,7 +2172,7 @@
         "type": "grafana-postgresql-datasource",
         "uid": "TeslaMate"
       },
-      "description": "Total energy added across all charge sessions in the selected period.",
+      "description": "Highest rated range ever recorded — the full-charge range benchmark for health comparison.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2189,7 +2189,7 @@
               }
             ]
           },
-          "unit": "kwatth"
+          "unit": "lengthkm"
         },
         "overrides": []
       },
@@ -2227,11 +2227,11 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(charge_energy_added)::numeric, 1) AS \"Energy Charged [kWh]\"\nFROM charging_processes\nWHERE car_id = $car_id\n  AND charge_energy_added > 0\n  AND $__timeFilter(start_date)",
+          "rawSql": "SELECT ROUND(MAX(c.rated_battery_range_km)::numeric, 0) AS \"Max Rated Range [km]\"\nFROM charges c\nINNER JOIN charging_processes cp ON cp.id = c.charging_process_id\nWHERE cp.car_id = $car_id\n  AND c.rated_battery_range_km IS NOT NULL",
           "refId": "A"
         }
       ],
-      "title": "Total Energy Charged",
+      "title": "Max Rated Range",
       "type": "stat"
     }
   ],
