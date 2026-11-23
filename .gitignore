@@ -19,3 +19,18 @@ ROADMAP.md
 
 # package-lock (empty artifact; not a real node project)
 package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node (only used by tools/screenshots.mjs; install playwright-core locally)
+node_modules/
+package.json
+
+# Kept locally, not published: generator sources, CI and tooling
+/ecos/
+/tools/
+/.github/
+/Makefile

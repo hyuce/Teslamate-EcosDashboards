@@ -1,5 +1,7 @@
 apiVersion: 1
 
+# One Grafana folder per language. To install fewer languages, delete the
+# providers you do not want. Each dashboard links to its other languages.
 providers:
 - name: 'TeslamateEcosDashboards'
   orgId: 1
@@ -10,5 +12,49 @@ providers:
   allowUiUpdates: true
   updateIntervalSeconds: 10
   options:
-    path: /TeslamateEcosDashboards
+    path: /TeslamateEcosDashboards/dashboards/en
+    foldersFromFilesStructure: false
+- name: 'TeslamateEcosDashboardsTR'
+  orgId: 1
+  folder: Teslamate Ecos (Türkçe)
+  folderUid: teslamate_ecos_tr
+  type: file
+  disableDeletion: false
+  allowUiUpdates: true
+  updateIntervalSeconds: 10
+  options:
+    path: /TeslamateEcosDashboards/dashboards/tr
+    foldersFromFilesStructure: false
+- name: 'TeslamateEcosDashboardsDE'
+  orgId: 1
+  folder: Teslamate Ecos (Deutsch)
+  folderUid: teslamate_ecos_de
+  type: file
+  disableDeletion: false
+  allowUiUpdates: true
+  updateIntervalSeconds: 10
+  options:
+    path: /TeslamateEcosDashboards/dashboards/de
+    foldersFromFilesStructure: false
+- name: 'TeslamateEcosDashboardsES'
+  orgId: 1
+  folder: Teslamate Ecos (Español)
+  folderUid: teslamate_ecos_es
+  type: file
+  disableDeletion: false
+  allowUiUpdates: true
+  updateIntervalSeconds: 10
+  options:
+    path: /TeslamateEcosDashboards/dashboards/es
+    foldersFromFilesStructure: false
+- name: 'TeslamateEcosDashboardsFR'
+  orgId: 1
+  folder: Teslamate Ecos (Français)
+  folderUid: teslamate_ecos_fr
+  type: file
+  disableDeletion: false
+  allowUiUpdates: true
+  updateIntervalSeconds: 10
+  options:
+    path: /TeslamateEcosDashboards/dashboards/fr
     foldersFromFilesStructure: false

@@ -1,0 +1,3729 @@
+{
+  "uid": "ecos3-overview-de",
+  "title": "Ecos · Übersicht",
+  "description": "Ein Bildschirm: Batterie, Kosten, Verbrauch und Standverlust, jeweils im Vergleich zum vorherigen Zeitraum. Ein Klick auf eine Zahl öffnet das zugehörige Dashboard.",
+  "tags": [
+    "tesla",
+    "ecos-v3-de"
+  ],
+  "schemaVersion": 40,
+  "version": 1,
+  "editable": true,
+  "graphTooltip": 1,
+  "timezone": "browser",
+  "refresh": "",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "links": [
+    {
+      "type": "link",
+      "title": "Übersicht",
+      "url": "/d/ecos3-overview-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Batterie",
+      "url": "/d/ecos3-battery-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Laden",
+      "url": "/d/ecos3-charging-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Reichweite",
+      "url": "/d/ecos3-range-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Standverlust",
+      "url": "/d/ecos3-drain-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Tägliche Nutzung",
+      "url": "/d/ecos3-use-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Jahreszeiten",
+      "url": "/d/ecos3-seasons-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "Batteriebericht",
+      "url": "/d/ecos3-report-de",
+      "icon": "bolt",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "type": "link",
+      "title": "TeslaMate",
+      "icon": "dashboard",
+      "url": "${base_url:raw}",
+      "targetBlank": true,
+      "tooltip": "Fahrten- und Ladelisten gibt es in TeslaMate"
+    },
+    {
+      "type": "link",
+      "title": "EN",
+      "tooltip": "English",
+      "icon": "external link",
+      "url": "/d/ecos3-overview",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false
+    },
+    {
+      "type": "link",
+      "title": "TR",
+      "tooltip": "Türkçe",
+      "icon": "external link",
+      "url": "/d/ecos3-overview-tr",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false
+    },
+    {
+      "type": "link",
+      "title": "ES",
+      "tooltip": "Español",
+      "icon": "external link",
+      "url": "/d/ecos3-overview-es",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false
+    },
+    {
+      "type": "link",
+      "title": "FR",
+      "tooltip": "Français",
+      "icon": "external link",
+      "url": "/d/ecos3-overview-fr",
+      "keepTime": true,
+      "includeVars": true,
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "car_id",
+        "label": "Fahrzeug",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT id AS __value, CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) END AS __text FROM cars ORDER BY display_priority ASC, name ASC, vin ASC",
+        "definition": "SELECT id AS __value, CASE WHEN COUNT(id) OVER (PARTITION BY name) > 1 AND name IS NOT NULL THEN CONCAT(name, ' - ', RIGHT(vin, 6)) ELSE COALESCE(name, CONCAT('VIN ', vin)) END AS __text FROM cars ORDER BY display_priority ASC, name ASC, vin ASC",
+        "refresh": 1,
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "currency",
+        "label": "Währung",
+        "type": "custom",
+        "hide": 0,
+        "query": "TRY,EUR,USD,GBP,CHF,SEK,NOK,DKK,PLN,CZK,CAD,AUD,CNY",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "text": "TRY",
+          "value": "TRY",
+          "selected": true
+        },
+        "options": [
+          {
+            "text": "TRY",
+            "value": "TRY",
+            "selected": true
+          },
+          {
+            "text": "EUR",
+            "value": "EUR",
+            "selected": false
+          },
+          {
+            "text": "USD",
+            "value": "USD",
+            "selected": false
+          },
+          {
+            "text": "GBP",
+            "value": "GBP",
+            "selected": false
+          },
+          {
+            "text": "CHF",
+            "value": "CHF",
+            "selected": false
+          },
+          {
+            "text": "SEK",
+            "value": "SEK",
+            "selected": false
+          },
+          {
+            "text": "NOK",
+            "value": "NOK",
+            "selected": false
+          },
+          {
+            "text": "DKK",
+            "value": "DKK",
+            "selected": false
+          },
+          {
+            "text": "PLN",
+            "value": "PLN",
+            "selected": false
+          },
+          {
+            "text": "CZK",
+            "value": "CZK",
+            "selected": false
+          },
+          {
+            "text": "CAD",
+            "value": "CAD",
+            "selected": false
+          },
+          {
+            "text": "AUD",
+            "value": "AUD",
+            "selected": false
+          },
+          {
+            "text": "CNY",
+            "value": "CNY",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "length_unit",
+        "label": "length_unit",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT unit_of_length FROM settings LIMIT 1",
+        "definition": "SELECT unit_of_length FROM settings LIMIT 1",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "temp_unit",
+        "label": "temp_unit",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "definition": "SELECT unit_of_temperature FROM settings LIMIT 1",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "preferred_range",
+        "label": "preferred_range",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT preferred_range FROM settings LIMIT 1",
+        "definition": "SELECT preferred_range FROM settings LIMIT 1",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "base_url",
+        "label": "base_url",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT base_url FROM settings LIMIT 1",
+        "definition": "SELECT base_url FROM settings LIMIT 1",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "home",
+        "label": "Zuhause laden bei",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "TeslaMate"
+        },
+        "query": "SELECT '(not set)' AS __text, -1 AS __value UNION ALL (SELECT name, id FROM geofences ORDER BY name)",
+        "definition": "SELECT '(not set)' AS __text, -1 AS __value UNION ALL (SELECT name, id FROM geofences ORDER BY name)",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": true,
+        "options": [],
+        "sort": 0,
+        "description": "Geofences, die als Laden zuhause zählen.",
+        "current": {
+          "text": [
+            "(not set)"
+          ],
+          "value": [
+            "-1"
+          ],
+          "selected": true
+        }
+      },
+      {
+        "name": "reference_kwh",
+        "label": "Referenzkapazität (kWh)",
+        "type": "textbox",
+        "hide": 2,
+        "query": "",
+        "description": "Nutzbare Kapazität im Neuzustand. Leer = automatisch erkennen.",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [
+          {
+            "text": "",
+            "value": "",
+            "selected": true
+          }
+        ]
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard",
+        "iconColor": "rgba(0,211,255,1)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "gauge",
+      "title": "Batteriezustand",
+      "description": "Aktuelle nutzbare Kapazität als Anteil der Referenzkapazität. Aktuell = Median der letzten 10 Kapazitätsschätzungen. Die Linie in der Anzeige zeigt den gesamten Verlauf dieses Werts.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100),\ncapref AS (\n        SELECT COALESCE(\n          NULLIF(NULLIF(TRIM('$reference_kwh'), ''), '0')::float8,\n          (SELECT percentile_cont(0.95) WITHIN GROUP (ORDER BY cap) FROM cap)\n        ) AS ref,\n        NULLIF(NULLIF(TRIM('$reference_kwh'), ''), '0') IS NOT NULL\n          AS manual)\nSELECT s.t AS time, r.med * 100 / NULLIF((SELECT ref FROM capref), 0) AS health\nFROM cap s CROSS JOIN LATERAL (\n  SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY cap) AS med\n  FROM (SELECT cap FROM cap c2 WHERE c2.t <= s.t\n        ORDER BY c2.t DESC LIMIT 10) z) r\nWHERE s.t <= ($__timeTo()::timestamptz AT TIME ZONE 'UTC') ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percent",
+          "decimals": 1,
+          "min": 50,
+          "max": 100,
+          "noValue": "Benötigt einen Ladevorgang mit 100+ Einheiten Nennreichweite",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#E02F44"
+              },
+              {
+                "value": 70,
+                "color": "#E0B400"
+              },
+              {
+                "value": 85,
+                "color": "#56A64B"
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "Details öffnen",
+              "url": "/d/ecos3-battery-de?${__url_time_range}&${car_id:queryparam}"
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "shape": "circle",
+        "barShape": "rounded",
+        "barWidthFactor": 0.32,
+        "segmentCount": 1,
+        "segmentSpacing": 0.3,
+        "sparkline": true,
+        "endpointMarker": "glow",
+        "textMode": "value",
+        "effects": {
+          "barGlow": true,
+          "centerGlow": true,
+          "gradient": true
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false,
+        "sizing": "auto",
+        "minVizWidth": 75,
+        "minVizHeight": 75,
+        "orientation": "auto"
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ladekosten pro 100 $length_unit",
+      "description": "Im Zeitraum für das Laden ausgegebenes Geld geteilt durch die darin gefahrene Strecke. Ladevorgänge ohne Kosten zählen als null. Die kleine Prozentzahl zeigt die Veränderung gegenüber dem gleich langen Zeitraum unmittelbar vor dem gewählten.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH periods AS (\n        SELECT n, t0, t1 FROM (VALUES\n          (1, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC') - (($__timeTo()::timestamptz AT TIME ZONE 'UTC') - ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')), ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')),\n          (2, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC'), ($__timeTo()::timestamptz AT TIME ZONE 'UTC'))) v(n, t0, t1)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\neff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\ndrv AS (\n        SELECT d.id, d.start_date, d.end_date, d.distance::float8 AS km,\n               d.duration_min, d.outside_temp_avg AS temp,\n               d.ascent, d.descent,\n               ((d.start_rated_range_km - d.end_rated_range_km) * eff.e)::float8\n                 AS kwh\n        FROM drives d CROSS JOIN eff\n        WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          AND d.distance > 0 AND d.start_rated_range_km IS NOT NULL\n          AND d.end_rated_range_km IS NOT NULL)\nSELECT p.t1 AS time, m.* FROM periods p\nCROSS JOIN LATERAL (SELECT (SELECT SUM(cost) FROM chg WHERE start_date >= p.t0 AND start_date < p.t1) * 100 / NULLIF((SELECT convert_km((SUM(km))::numeric, '$length_unit') FROM drv WHERE start_date >= p.t0 AND start_date < p.t1), 0) AS \"cost100__$currency\") m ORDER BY p.n",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "noValue": "Nicht genug Daten",
+          "decimals": 1,
+          "links": [
+            {
+              "title": "Details öffnen",
+              "url": "/d/ecos3-charging-de?${__url_time_range}&${car_id:queryparam}"
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": true,
+        "percentChangeColorMode": "inverted"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Verbrauch",
+      "description": "Beim Fahren verbrauchte Netto-Energie pro Strecke, nach Strecke gewichtet (Gesamtenergie / Gesamtstrecke). Die kleine Prozentzahl zeigt die Veränderung gegenüber dem gleich langen Zeitraum unmittelbar vor dem gewählten.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH periods AS (\n        SELECT n, t0, t1 FROM (VALUES\n          (1, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC') - (($__timeTo()::timestamptz AT TIME ZONE 'UTC') - ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')), ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')),\n          (2, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC'), ($__timeTo()::timestamptz AT TIME ZONE 'UTC'))) v(n, t0, t1)),\neff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\ndrv AS (\n        SELECT d.id, d.start_date, d.end_date, d.distance::float8 AS km,\n               d.duration_min, d.outside_temp_avg AS temp,\n               d.ascent, d.descent,\n               ((d.start_rated_range_km - d.end_rated_range_km) * eff.e)::float8\n                 AS kwh\n        FROM drives d CROSS JOIN eff\n        WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          AND d.distance > 0 AND d.start_rated_range_km IS NOT NULL\n          AND d.end_rated_range_km IS NOT NULL)\nSELECT p.t1 AS time, m.* FROM periods p\nCROSS JOIN LATERAL (SELECT SUM(kwh) * 1000 / NULLIF(convert_km((SUM(km))::numeric, '$length_unit'), 0) AS \"consumption__wh_$length_unit\" FROM drv WHERE start_date >= p.t0 AND start_date < p.t1) m ORDER BY p.n",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "noValue": "Nicht genug Daten",
+          "decimals": 0,
+          "links": [
+            {
+              "title": "Details öffnen",
+              "url": "/d/ecos3-range-de?${__url_time_range}&${car_id:queryparam}"
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": true,
+        "percentChangeColorMode": "inverted"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Reichweitenverlust pro Standtag",
+      "description": "Reichweite, die verschwindet, während das Auto geparkt ist, pro 24 Stunden Standzeit. Standzeiten mit Laden dazwischen bleiben außen vor. Die kleine Prozentzahl zeigt die Veränderung gegenüber dem gleich langen Zeitraum unmittelbar vor dem gewählten.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH periods AS (\n        SELECT n, t0, t1 FROM (VALUES\n          (1, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC') - (($__timeTo()::timestamptz AT TIME ZONE 'UTC') - ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')), ($__timeFrom()::timestamptz AT TIME ZONE 'UTC')),\n          (2, ($__timeFrom()::timestamptz AT TIME ZONE 'UTC'), ($__timeTo()::timestamptz AT TIME ZONE 'UTC'))) v(n, t0, t1)),\neff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0))\nSELECT p.t1 AS time, m.* FROM periods p\nCROSS JOIN LATERAL (SELECT convert_km((SUM(loss_km))::numeric, '$length_unit') * 24 / NULLIF(SUM(hours), 0)::numeric AS \"loss__${length_unit}_day\" FROM park WHERE t0 >= p.t0 AND t0 < p.t1) m ORDER BY p.n",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "noValue": "Nicht genug Daten",
+          "decimals": 1,
+          "links": [
+            {
+              "title": "Details öffnen",
+              "url": "/d/ecos3-drain-de?${__url_time_range}&${car_id:queryparam}"
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": true,
+        "percentChangeColorMode": "inverted"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "row",
+      "title": "Gibt es etwas zu prüfen?",
+      "collapsed": false,
+      "panels": [],
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Gesamt",
+      "description": "Anzahl der vier Prüfungen rechts, die auffällig sind. Alle vier ignorieren den gewählten Zeitbereich und betrachten immer die letzten Tage.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100)\nSELECT COALESCE((drain > 2)::int, 0) + COALESCE((eff < 85)::int, 0)\n         + (unpriced > 0)::int + COALESCE((age > 60)::int, 0) AS status,\n       drain, eff, unpriced, age\nFROM (SELECT\n  (SELECT (SUM(loss_kwh) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days')\n            / NULLIF(SUM(hours) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days'), 0))\n          / NULLIF(SUM(loss_kwh) / NULLIF(SUM(hours), 0), 0)\n     FROM park WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS drain,\n  (SELECT SUM(added) * 100 / NULLIF(SUM(used), 0) FROM chg\n     WHERE start_date >= (now() AT TIME ZONE 'UTC') - interval '30 days') AS eff,\n  (SELECT COUNT(*) FROM chg WHERE cost IS NULL\n     AND start_date >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS unpriced,\n  (SELECT EXTRACT(EPOCH FROM ((now() AT TIME ZONE 'UTC') - MAX(t))) / 86400 FROM cap) AS age) x",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Noch keine Daten",
+          "unit": "suffix: auffällig",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#56A64B"
+              },
+              {
+                "value": 1,
+                "color": "#E0B400"
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Alles in Ordnung",
+                  "index": 0
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^status$/",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Standverlust vs. üblich",
+      "description": "Reichweitenverlust pro Standstunde in den letzten 7 Tagen, geteilt durch denselben Wert für die letzten 90 Tage. 1.0 ist normal; 2.0 oder mehr (das Doppelte des üblichen Verlusts) gilt als auffällig. Siehe Dashboard Standverlust.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100)\nSELECT COALESCE((drain > 2)::int, 0) + COALESCE((eff < 85)::int, 0)\n         + (unpriced > 0)::int + COALESCE((age > 60)::int, 0) AS status,\n       drain, eff, unpriced, age\nFROM (SELECT\n  (SELECT (SUM(loss_kwh) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days')\n            / NULLIF(SUM(hours) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days'), 0))\n          / NULLIF(SUM(loss_kwh) / NULLIF(SUM(hours), 0), 0)\n     FROM park WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS drain,\n  (SELECT SUM(added) * 100 / NULLIF(SUM(used), 0) FROM chg\n     WHERE start_date >= (now() AT TIME ZONE 'UTC') - interval '30 days') AS eff,\n  (SELECT COUNT(*) FROM chg WHERE cost IS NULL\n     AND start_date >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS unpriced,\n  (SELECT EXTRACT(EPOCH FROM ((now() AT TIME ZONE 'UTC') - MAX(t))) / 86400 FROM cap) AS age) x",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Noch keine Daten",
+          "unit": "suffix:×",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#56A64B"
+              },
+              {
+                "value": 1.5,
+                "color": "#E0B400"
+              },
+              {
+                "value": 2,
+                "color": "#E02F44"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^drain$/",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 4,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ladeeffizienz",
+      "description": "Anteil der von Ladestationen bezogenen Energie, der in den letzten 30 Tagen in der Batterie angekommen ist. Unter 85% gilt als auffällig. Siehe Dashboard Laden.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100)\nSELECT COALESCE((drain > 2)::int, 0) + COALESCE((eff < 85)::int, 0)\n         + (unpriced > 0)::int + COALESCE((age > 60)::int, 0) AS status,\n       drain, eff, unpriced, age\nFROM (SELECT\n  (SELECT (SUM(loss_kwh) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days')\n            / NULLIF(SUM(hours) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days'), 0))\n          / NULLIF(SUM(loss_kwh) / NULLIF(SUM(hours), 0), 0)\n     FROM park WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS drain,\n  (SELECT SUM(added) * 100 / NULLIF(SUM(used), 0) FROM chg\n     WHERE start_date >= (now() AT TIME ZONE 'UTC') - interval '30 days') AS eff,\n  (SELECT COUNT(*) FROM chg WHERE cost IS NULL\n     AND start_date >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS unpriced,\n  (SELECT EXTRACT(EPOCH FROM ((now() AT TIME ZONE 'UTC') - MAX(t))) / 86400 FROM cap) AS age) x",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Noch keine Daten",
+          "unit": "percent",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#E02F44"
+              },
+              {
+                "value": 85,
+                "color": "#E0B400"
+              },
+              {
+                "value": 90,
+                "color": "#56A64B"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^eff$/",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 9,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ladevorgänge ohne Preis",
+      "description": "Ladevorgänge der letzten 90 Tage, für die keine Kosten erfasst sind. Sie lassen jede Kostenangabe zu niedrig ausfallen; lege in TeslaMate einen Preis für den Geofence fest.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100)\nSELECT COALESCE((drain > 2)::int, 0) + COALESCE((eff < 85)::int, 0)\n         + (unpriced > 0)::int + COALESCE((age > 60)::int, 0) AS status,\n       drain, eff, unpriced, age\nFROM (SELECT\n  (SELECT (SUM(loss_kwh) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days')\n            / NULLIF(SUM(hours) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days'), 0))\n          / NULLIF(SUM(loss_kwh) / NULLIF(SUM(hours), 0), 0)\n     FROM park WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS drain,\n  (SELECT SUM(added) * 100 / NULLIF(SUM(used), 0) FROM chg\n     WHERE start_date >= (now() AT TIME ZONE 'UTC') - interval '30 days') AS eff,\n  (SELECT COUNT(*) FROM chg WHERE cost IS NULL\n     AND start_date >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS unpriced,\n  (SELECT EXTRACT(EPOCH FROM ((now() AT TIME ZONE 'UTC') - MAX(t))) / 86400 FROM cap) AS age) x",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Noch keine Daten",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#56A64B"
+              },
+              {
+                "value": 1,
+                "color": "#E0B400"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^unpriced$/",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 14,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Alter der Batterieschätzung",
+      "description": "Tage seit dem letzten Ladevorgang, der tief genug war, um die Batteriekapazität zu schätzen. Über 60 Tage gilt als auffällig: Die Batteriewerte sind dann veraltet.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\npark AS (\n        SELECT x.t0, x.t1, x.temp, x.geofence_id, x.address_id,\n               EXTRACT(EPOCH FROM (x.t1 - x.t0)) / 3600.0 AS hours,\n               GREATEST(x.p0 - x.p1, 0)::float8 AS loss_km,\n               (GREATEST(x.r0 - x.r1, 0) * eff.e)::float8 AS loss_kwh\n        FROM (\n          SELECT d.end_date AS t0, LEAD(d.start_date) OVER w AS t1,\n                 d.end_rated_range_km AS r0,\n                 LEAD(d.start_rated_range_km) OVER w AS r1,\n                 d.end_${preferred_range}_range_km AS p0,\n                 LEAD(d.start_${preferred_range}_range_km) OVER w AS p1,\n                 COALESCE((d.outside_temp_avg\n                   + LEAD(d.outside_temp_avg) OVER w) / 2,\n                   d.outside_temp_avg) AS temp,\n                 d.end_geofence_id AS geofence_id,\n                 d.end_address_id AS address_id\n          FROM drives d\n          WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          WINDOW w AS (ORDER BY d.start_date)) x\n        CROSS JOIN eff\n        WHERE x.t1 IS NOT NULL AND x.r0 IS NOT NULL AND x.r1 IS NOT NULL\n          AND x.t1 - x.t0 BETWEEN interval '1 hour' AND interval '30 days'\n          AND NOT EXISTS (\n            SELECT 1 FROM charging_processes c\n            WHERE c.car_id = $car_id AND c.start_date < x.t1\n              AND COALESCE(c.end_date, c.start_date) > x.t0)),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\ncap AS (\n        SELECT cp.id, cp.end_date AS t, pos.odometer::float8 AS odo,\n               (c.rated_battery_range_km * eff.e * 100.0\n                 / c.usable_battery_level)::float8 AS cap\n        FROM charging_processes cp\n        CROSS JOIN eff\n        JOIN LATERAL (\n          SELECT rated_battery_range_km, usable_battery_level FROM charges\n          WHERE charging_process_id = cp.id AND usable_battery_level > 0\n            AND rated_battery_range_km IS NOT NULL\n          ORDER BY date DESC LIMIT 1) c ON true\n        LEFT JOIN positions pos ON pos.id = cp.position_id\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added >= eff.e * 100)\nSELECT COALESCE((drain > 2)::int, 0) + COALESCE((eff < 85)::int, 0)\n         + (unpriced > 0)::int + COALESCE((age > 60)::int, 0) AS status,\n       drain, eff, unpriced, age\nFROM (SELECT\n  (SELECT (SUM(loss_kwh) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days')\n            / NULLIF(SUM(hours) FILTER (WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '7 days'), 0))\n          / NULLIF(SUM(loss_kwh) / NULLIF(SUM(hours), 0), 0)\n     FROM park WHERE t0 >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS drain,\n  (SELECT SUM(added) * 100 / NULLIF(SUM(used), 0) FROM chg\n     WHERE start_date >= (now() AT TIME ZONE 'UTC') - interval '30 days') AS eff,\n  (SELECT COUNT(*) FROM chg WHERE cost IS NULL\n     AND start_date >= (now() AT TIME ZONE 'UTC') - interval '90 days') AS unpriced,\n  (SELECT EXTRACT(EPOCH FROM ((now() AT TIME ZONE 'UTC') - MAX(t))) / 86400 FROM cap) AS age) x",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Noch keine Daten",
+          "unit": "suffix: Tage",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "#56A64B"
+              },
+              {
+                "value": 30,
+                "color": "#E0B400"
+              },
+              {
+                "value": 60,
+                "color": "#E02F44"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^age$/",
+          "values": false
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard"
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 19,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "Wie liefen die letzten 12 Monate?",
+      "collapsed": false,
+      "panels": [],
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Strecke und Ladekosten pro 100 $length_unit",
+      "description": "Fläche: gefahrene Strecke pro Monat (linke Achse). Linie: Ladekosten pro 100 Streckeneinheiten in diesem Monat (rechte Achse); entfällt für Monate mit weniger als 100 gefahrenen Streckeneinheiten. Zeigt immer 12 Monate, unabhängig vom gewählten Zeitbereich.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "TeslaMate"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "TeslaMate"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH eff AS (\n        SELECT COALESCE(derived, car_eff)::float8 AS e FROM (\n          SELECT ROUND((cp.charge_energy_added / NULLIF(cp.end_rated_range_km\n                   - cp.start_rated_range_km, 0))::numeric, 3) AS derived,\n                 COUNT(*) AS n, cars.efficiency AS car_eff\n          FROM cars\n          LEFT JOIN charging_processes cp ON cp.car_id = cars.id\n            AND cp.duration_min > 10 AND cp.end_battery_level <= 95\n            AND cp.start_rated_range_km IS NOT NULL\n            AND cp.end_rated_range_km IS NOT NULL\n            AND cp.charge_energy_added > 0\n          WHERE cars.id = $car_id\n          GROUP BY 1, 3 ORDER BY 2 DESC, 1 LIMIT 1) x),\ndrv AS (\n        SELECT d.id, d.start_date, d.end_date, d.distance::float8 AS km,\n               d.duration_min, d.outside_temp_avg AS temp,\n               d.ascent, d.descent,\n               ((d.start_rated_range_km - d.end_rated_range_km) * eff.e)::float8\n                 AS kwh\n        FROM drives d CROSS JOIN eff\n        WHERE d.car_id = $car_id AND d.end_date IS NOT NULL\n          AND d.distance > 0 AND d.start_rated_range_km IS NOT NULL\n          AND d.end_rated_range_km IS NOT NULL),\nchg AS (\n        SELECT cp.id, cp.start_date, cp.end_date, cp.geofence_id,\n               cp.charge_energy_added::float8 AS added,\n               GREATEST(cp.charge_energy_used, cp.charge_energy_added)::float8\n                 AS used,\n               cp.cost::float8 AS cost, cp.duration_min,\n               cp.outside_temp_avg AS temp,\n               cp.start_battery_level AS soc0, cp.end_battery_level AS soc1,\n               COALESCE(g.name, a.name, a.road, a.city, 'Unbekannt') AS place,\n               CASE WHEN k.is_dc THEN 'DC'\n                    WHEN cp.geofence_id IN ($home) THEN 'Home'\n                    ELSE 'Public AC' END AS kind\n        FROM charging_processes cp\n        LEFT JOIN geofences g ON g.id = cp.geofence_id\n        LEFT JOIN addresses a ON a.id = cp.address_id\n        LEFT JOIN LATERAL (\n          SELECT COALESCE(bool_or(fast_charger_present), false) AS is_dc\n          FROM charges WHERE charging_process_id = cp.id) k ON true\n        WHERE cp.car_id = $car_id AND cp.end_date IS NOT NULL\n          AND cp.charge_energy_added > 0),\nm AS (SELECT generate_series(\n        date_trunc('month', (((now() AT TIME ZONE 'UTC')) AT TIME ZONE 'UTC' AT TIME ZONE '$__timezone') - interval '11 months'),\n        date_trunc('month', (((now() AT TIME ZONE 'UTC')) AT TIME ZONE 'UTC' AT TIME ZONE '$__timezone')), interval '1 month') AS mon),\nd AS (SELECT date_trunc('month', ((start_date) AT TIME ZONE 'UTC' AT TIME ZONE '$__timezone')) AS mon,\n             SUM(km) AS km FROM drv GROUP BY 1),\nc AS (SELECT date_trunc('month', ((start_date) AT TIME ZONE 'UTC' AT TIME ZONE '$__timezone')) AS mon,\n             SUM(cost) AS cost FROM chg GROUP BY 1)\nSELECT ((m.mon) AT TIME ZONE '$__timezone') AS time,\n       convert_km((COALESCE(d.km, 0))::numeric, '$length_unit') AS \"distance__$length_unit\",\n       CASE WHEN convert_km((d.km)::numeric, '$length_unit') >= 100 THEN c.cost * 100 / convert_km((d.km)::numeric, '$length_unit') END\n         AS \"cost100__$currency\"\nFROM m LEFT JOIN d USING (mon) LEFT JOIN c USING (mon) ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "gradientMode": "opacity",
+            "lineInterpolation": "linear",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisBorderShow": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__C$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__F$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "fahrenheit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_km$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/km"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__wh_mi$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wh/mi"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__km_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "km/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__mi_day$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "mi/day"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__TRY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: ₺"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__EUR$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: €"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__USD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:$"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__GBP$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:£"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CHF$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CHF"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__SEK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__NOK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__DKK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: kr"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__PLN$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: zł"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CZK$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: Kč"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CAD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CAD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__AUD$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: AUD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/__CNY$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: CNY"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^distance(__.*)?$/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Strecke"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 35
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "always"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 5
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^cost100(__.*)?$/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kosten pro 100"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#B877D9"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "always"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 6
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "timeFrom": "1y",
+      "hideTimeOverride": false,
+      "id": 12,
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 24,
+        "h": 10
+      }
+    }
+  ]
+}

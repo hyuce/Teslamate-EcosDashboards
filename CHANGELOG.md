@@ -5,6 +5,34 @@ All notable changes to the TeslaMate Ecos Dashboards are documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-11-23
+
+A redesign in response to user feedback that v2 was cluttered and hard to use. v2 stays on the `v2` branch.
+
+### Changed
+- **Eight question-driven dashboards**: Overview, Daily use, Seasons and Battery report are new; Battery, Charging, Range and Parking loss are rebuilt; Vehicle State and Finance are gone. 79 panels instead of 91.
+- **No table panels and no bar charts.** Lists became ranked gradient bars or markers on a chart; category comparisons became colour tiles; bounded percentages became radial gauges.
+- **Every headline number shows its change** against the previous period of the same length.
+- **One definition per metric**, shared by all dashboards, so the same number never differs between two places.
+- **Units and currency are no longer hard-coded**: length, temperature and range type follow the TeslaMate settings; currency is a dashboard variable.
+- **Dashboards are generated** from one set of definitions, so every language and every panel follows the same rules.
+- New dashboard ids (`ecos3-…`).
+
+### Added
+- Overview dashboard with four automatic checks (parking loss, charging efficiency, unpriced charges, stale battery estimate).
+- Battery: uncertainty band, software-update markers and a reliability indicator.
+- Charging: Home / Public AC / DC split (home geofences are chosen in a variable), DC chargers ranked by real speed, and a split of charging money into driving, charging loss and parking loss.
+- Range: real range by speed and temperature, and four directly comparable consumption factors.
+- Parking loss: cost of the loss, sleep analysis, loss by place, worst parks marked on the chart.
+- Daily use: distribution of daily distance, how much battery a day takes, and charging and parking levels.
+- Seasons: range, consumption, parking loss and charging efficiency season by season.
+- Range estimate: expected range for a speed and temperature you type in.
+- Battery report: a one-page battery summary for sharing, with no locations, costs or driver data.
+- **Five languages.** Every dashboard is generated in English, Turkish, German, Spanish and French, each language in its own Grafana folder, with links to switch.
+
+### Removed
+- Vehicle State and Finance dashboards (recorded charging costs are now on Charging and Overview) and the panels listed under "Upgrading from v2" in the README, because TeslaMate already shows them or they answered no question.
+
 ## [2.4.0] - 2026-08-15
 
 ### Changed
